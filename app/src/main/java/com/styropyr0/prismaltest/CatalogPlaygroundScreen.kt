@@ -318,7 +318,14 @@ private fun CatalogTabContent(
         item {
             IosSectionHeader("Download")
             IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
-                Column(Modifier.padding(IosLayout.groupInnerPadding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = IosLayout.groupInnerPadding,
+                            vertical = IosLayout.rowVerticalPadding
+                        )
+                ) {
                     PlaygroundGlassProgressBar(
                         progress = { progress },
                         backdrop = backdrop,
@@ -326,20 +333,20 @@ private fun CatalogTabContent(
                         luminance = luminance,
                         indeterminate = indeterminate
                     )
+                }
+                IosGroupDivider(showLeadingInset = false)
+                IosListRow(
+                    title = if (indeterminate) "Use Determinate Progress" else "Use Indeterminate Progress",
+                    titleColor = IosTheme.colors.systemBlue,
+                    onClick = { onIndeterminateChange(!indeterminate) }
+                )
+                if (!indeterminate) {
                     IosGroupDivider(showLeadingInset = false)
                     IosListRow(
-                        title = if (indeterminate) "Use Determinate Progress" else "Use Indeterminate Progress",
+                        title = "Advance",
                         titleColor = IosTheme.colors.systemBlue,
-                        onClick = { onIndeterminateChange(!indeterminate) }
+                        onClick = onAdvanceProgress
                     )
-                    if (!indeterminate) {
-                        IosGroupDivider(showLeadingInset = false)
-                        IosListRow(
-                            title = "Advance",
-                            titleColor = IosTheme.colors.systemBlue,
-                            onClick = onAdvanceProgress
-                        )
-                    }
                 }
             }
         }
