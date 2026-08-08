@@ -44,18 +44,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.styropyr0.prismal.PrismalGlassSurface
 import com.styropyr0.prismal.components.PrismalGlassBottomTab
 import com.styropyr0.prismal.components.PrismalGlassBottomTabs
-import com.styropyr0.prismal.components.PrismalGlassButton
-import com.styropyr0.prismal.components.PrismalGlassProgressBar
 import com.styropyr0.prismal.components.PrismalGlassSlider
 import com.styropyr0.prismal.components.PrismalGlassToggle
 import com.styropyr0.prismal.components.PrismalGradientGlassPanel
@@ -116,8 +112,6 @@ fun CatalogPlaygroundScreen() {
                     onTabSelected = { selectedTab = it },
                     backdrop = backdropLayer,
                     tabsCount = 4,
-                    adaptiveLuminance = glassParams.adaptiveLuminance,
-                    luminance = luminance,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     PrismalGlassBottomTab(onClick = { selectedTab = PlaygroundTab.Home.ordinal }) {
@@ -194,6 +188,8 @@ fun CatalogPlaygroundScreen() {
 
         BackgroundImagePickerButton(
             backdrop = backdropLayer,
+            glassParams = glassParams,
+            luminance = luminance,
             onClick = {
                 pickBackgroundImage.launch(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
@@ -223,8 +219,6 @@ private fun CatalogTabContent(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    val density = LocalDensity.current
-
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = contentPadding,
@@ -248,18 +242,18 @@ private fun CatalogTabContent(
         item {
             CatalogSection(title = "Buttons") {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    PrismalGlassButton(
+                    PlaygroundGlassButton(
                         onClick = {},
                         backdrop = backdrop,
-                        adaptiveLuminance = glassParams.adaptiveLuminance,
+                        params = glassParams,
                         luminance = luminance
                     ) {
                         Text("Default")
                     }
-                    PrismalGlassButton(
+                    PlaygroundGlassButton(
                         onClick = {},
                         backdrop = backdrop,
-                        adaptiveLuminance = glassParams.adaptiveLuminance,
+                        params = glassParams,
                         luminance = luminance,
                         tint = Color(0xFF5856D6)
                     ) {
@@ -280,9 +274,7 @@ private fun CatalogTabContent(
                     PrismalGlassToggle(
                         selected = { toggleOn },
                         onSelect = onToggleChange,
-                        backdrop = backdrop,
-                        adaptiveLuminance = glassParams.adaptiveLuminance,
-                        luminance = luminance
+                        backdrop = backdrop
                     )
                 }
             }
@@ -300,9 +292,7 @@ private fun CatalogTabContent(
                         onValueChange = onSliderValueChange,
                         valueRange = 0f..1f,
                         visibilityThreshold = 0.01f,
-                        backdrop = backdrop,
-                        adaptiveLuminance = glassParams.adaptiveLuminance,
-                        luminance = luminance
+                        backdrop = backdrop
                     )
                 }
             }
@@ -315,20 +305,20 @@ private fun CatalogTabContent(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        PrismalGlassButton(
+                        PlaygroundGlassButton(
                             onClick = { onIndeterminateChange(!indeterminate) },
                             backdrop = backdrop,
-                            adaptiveLuminance = glassParams.adaptiveLuminance,
+                            params = glassParams,
                             luminance = luminance,
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(if (indeterminate) "Determinate" else "Indeterminate")
                         }
                         if (!indeterminate) {
-                            PrismalGlassButton(
+                            PlaygroundGlassButton(
                                 onClick = onAdvanceProgress,
                                 backdrop = backdrop,
-                                adaptiveLuminance = glassParams.adaptiveLuminance,
+                                params = glassParams,
                                 luminance = luminance,
                                 modifier = Modifier.weight(1f)
                             ) {
@@ -336,12 +326,12 @@ private fun CatalogTabContent(
                             }
                         }
                     }
-                    PrismalGlassProgressBar(
+                    PlaygroundGlassProgressBar(
                         progress = { progress },
                         backdrop = backdrop,
-                        indeterminate = indeterminate,
-                        adaptiveLuminance = glassParams.adaptiveLuminance,
-                        luminance = luminance
+                        params = glassParams,
+                        luminance = luminance,
+                        indeterminate = indeterminate
                     )
                 }
             }
@@ -366,21 +356,15 @@ private fun CatalogTabContent(
 
         item {
             CatalogSection(title = "Glass Surface") {
-                PrismalGlassSurface(
+                PlaygroundGlassSurface(
                     backdrop = backdrop,
+                    params = glassParams,
+                    luminance = luminance,
                     shape = { PrismalRoundedRectangle(24.dp) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp),
                     onClick = {},
-                    adaptiveLuminance = glassParams.adaptiveLuminance,
-                    luminance = luminance,
-                    brightness = glassParams.brightness,
-                    saturation = glassParams.saturation,
-                    refractionHeightPx = with(density) { glassParams.refractionHeightDp.dp.toPx() },
-                    refractionAmountPx = with(density) { glassParams.refractionAmountDp.dp.toPx() },
-                    depthEffect = glassParams.depthEffect,
-                    chromaticAberration = glassParams.chromaticAberration,
                     content = {
                         Column(
                             modifier = Modifier
@@ -413,11 +397,15 @@ private fun CatalogTabContent(
 @Composable
 private fun BackgroundImagePickerButton(
     backdrop: PrismalGlassLayer,
+    glassParams: GlassPlaygroundParams,
+    luminance: () -> Float,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    PrismalGlassSurface(
+    PlaygroundGlassSurface(
         backdrop = backdrop,
+        params = glassParams,
+        luminance = luminance,
         shape = { PrismalCapsule() },
         modifier = modifier.size(60.dp),
         onClick = onClick,

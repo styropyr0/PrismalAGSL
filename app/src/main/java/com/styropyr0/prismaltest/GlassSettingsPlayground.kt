@@ -16,12 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.PrismalGlass
-import com.styropyr0.prismal.components.PrismalGlassButton
 import com.styropyr0.prismal.components.PrismalGlassSlider
 import com.styropyr0.prismal.components.PrismalGlassToggle
 import com.styropyr0.prismal.components.PrismalGradientGlassPanel
@@ -36,7 +34,6 @@ fun GlassSettingsPlayground(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    val density = LocalDensity.current
     val isLightTheme = !isSystemInDarkTheme()
     val adaptiveLuminance = rememberPrismalAdaptiveLuminance(
         enabled = params.adaptiveLuminance,
@@ -106,8 +103,6 @@ fun GlassSettingsPlayground(
                     valueLabel = { "${it.toInt()} dp" },
                     onValueChange = { params.blurRadiusDp = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
                 PlaygroundSlider(
                     label = "Refraction height",
@@ -116,8 +111,6 @@ fun GlassSettingsPlayground(
                     valueLabel = { "${it.toInt()} dp" },
                     onValueChange = { params.refractionHeightDp = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
                 PlaygroundSlider(
                     label = "Refraction amount",
@@ -126,24 +119,18 @@ fun GlassSettingsPlayground(
                     valueLabel = { "${it.toInt()} dp" },
                     onValueChange = { params.refractionAmountDp = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
                 PlaygroundSwitch(
                     label = "Chromatic aberration",
                     checked = params.chromaticAberration,
                     onCheckedChange = { params.chromaticAberration = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
                 PlaygroundSwitch(
                     label = "Depth effect",
                     checked = params.depthEffect,
                     onCheckedChange = { params.depthEffect = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
             }
         }
@@ -155,18 +142,14 @@ fun GlassSettingsPlayground(
                     checked = params.adaptiveLuminance,
                     onCheckedChange = { params.adaptiveLuminance = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
                 if (!params.adaptiveLuminance) {
                     PlaygroundSwitch(
                         label = "Vibrancy",
                         checked = params.useVibrancy,
                         onCheckedChange = { params.useVibrancy = it },
-                        backdrop = backdrop,
-                        adaptiveLuminance = params.adaptiveLuminance,
-                        luminance = luminance
-                    )
+                    backdrop = backdrop,
+                )
                     if (!params.useVibrancy) {
                         PlaygroundSlider(
                             label = "Brightness",
@@ -174,20 +157,16 @@ fun GlassSettingsPlayground(
                             valueRange = -0.3f..0.5f,
                             valueLabel = { "%.2f".format(it) },
                             onValueChange = { params.brightness = it },
-                            backdrop = backdrop,
-                            adaptiveLuminance = params.adaptiveLuminance,
-                            luminance = luminance
-                        )
+                    backdrop = backdrop,
+                )
                         PlaygroundSlider(
                             label = "Saturation",
                             value = params.saturation,
                             valueRange = 0.5f..2.5f,
                             valueLabel = { "%.2f".format(it) },
                             onValueChange = { params.saturation = it },
-                            backdrop = backdrop,
-                            adaptiveLuminance = params.adaptiveLuminance,
-                            luminance = luminance
-                        )
+                    backdrop = backdrop,
+                )
                     }
                 }
                 PlaygroundSlider(
@@ -197,8 +176,6 @@ fun GlassSettingsPlayground(
                     valueLabel = { "%.0f%%".format(it * 100) },
                     onValueChange = { params.surfaceTintAlpha = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
             }
         }
@@ -210,13 +187,13 @@ fun GlassSettingsPlayground(
                     checked = params.specularEnabled,
                     onCheckedChange = { params.specularEnabled = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
                 if (params.specularEnabled) {
                     PlaygroundEnumChips(
                         label = "Style",
                         backdrop = backdrop,
+                        params = params,
+                        luminance = luminance,
                         options = SpecularStyleOption.entries,
                         selected = params.specularStyle,
                         onSelected = { params.specularStyle = it },
@@ -228,10 +205,8 @@ fun GlassSettingsPlayground(
                         valueRange = 0f..1f,
                         valueLabel = { "%.0f%%".format(it * 100) },
                         onValueChange = { params.specularAlpha = it },
-                        backdrop = backdrop,
-                        adaptiveLuminance = params.adaptiveLuminance,
-                        luminance = luminance
-                    )
+                    backdrop = backdrop,
+                )
                     if (params.specularStyle != SpecularStyleOption.Ambient) {
                         PlaygroundSlider(
                             label = "Width",
@@ -239,10 +214,8 @@ fun GlassSettingsPlayground(
                             valueRange = 0.25f..2f,
                             valueLabel = { "%.2f dp".format(it) },
                             onValueChange = { params.specularWidthDp = it },
-                            backdrop = backdrop,
-                            adaptiveLuminance = params.adaptiveLuminance,
-                            luminance = luminance
-                        )
+                    backdrop = backdrop,
+                )
                     }
                 }
             }
@@ -255,8 +228,6 @@ fun GlassSettingsPlayground(
                     checked = params.depthShadowEnabled,
                     onCheckedChange = { params.depthShadowEnabled = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
                 if (params.depthShadowEnabled) {
                     PlaygroundSlider(
@@ -265,28 +236,22 @@ fun GlassSettingsPlayground(
                         valueRange = 0f..32f,
                         valueLabel = { "${it.toInt()} dp" },
                         onValueChange = { params.depthShadowRadiusDp = it },
-                        backdrop = backdrop,
-                        adaptiveLuminance = params.adaptiveLuminance,
-                        luminance = luminance
-                    )
+                    backdrop = backdrop,
+                )
                     PlaygroundSlider(
                         label = "Shadow alpha",
                         value = params.depthShadowAlpha,
                         valueRange = 0f..1f,
                         valueLabel = { "%.0f%%".format(it * 100) },
                         onValueChange = { params.depthShadowAlpha = it },
-                        backdrop = backdrop,
-                        adaptiveLuminance = params.adaptiveLuminance,
-                        luminance = luminance
-                    )
+                    backdrop = backdrop,
+                )
                 }
                 PlaygroundSwitch(
                     label = "Depth inset",
                     checked = params.depthInsetEnabled,
                     onCheckedChange = { params.depthInsetEnabled = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
                 if (params.depthInsetEnabled) {
                     PlaygroundSlider(
@@ -295,20 +260,16 @@ fun GlassSettingsPlayground(
                         valueRange = 0f..24f,
                         valueLabel = { "${it.toInt()} dp" },
                         onValueChange = { params.depthInsetRadiusDp = it },
-                        backdrop = backdrop,
-                        adaptiveLuminance = params.adaptiveLuminance,
-                        luminance = luminance
-                    )
+                    backdrop = backdrop,
+                )
                     PlaygroundSlider(
                         label = "Inset alpha",
                         value = params.depthInsetAlpha,
                         valueRange = 0f..1f,
                         valueLabel = { "%.0f%%".format(it * 100) },
                         onValueChange = { params.depthInsetAlpha = it },
-                        backdrop = backdrop,
-                        adaptiveLuminance = params.adaptiveLuminance,
-                        luminance = luminance
-                    )
+                    backdrop = backdrop,
+                )
                 }
             }
         }
@@ -322,8 +283,6 @@ fun GlassSettingsPlayground(
                     valueLabel = { "%.2f".format(it) },
                     onValueChange = { params.gradientBottomWeight = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
                 PlaygroundSlider(
                     label = "Blur fade end",
@@ -332,16 +291,16 @@ fun GlassSettingsPlayground(
                     valueLabel = { "%.2f".format(it) },
                     onValueChange = { params.gradientBlurFadeEnd = it },
                     backdrop = backdrop,
-                    adaptiveLuminance = params.adaptiveLuminance,
-                    luminance = luminance
                 )
             }
         }
 
         item {
-            PrismalGlassButton(
+            PlaygroundGlassButton(
                 onClick = { params.reset() },
                 backdrop = backdrop,
+                params = params,
+                luminance = luminance,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Reset to defaults")
@@ -376,8 +335,6 @@ private fun PlaygroundSlider(
     valueLabel: (Float) -> String,
     onValueChange: (Float) -> Unit,
     backdrop: PrismalBackdrop,
-    adaptiveLuminance: Boolean,
-    luminance: () -> Float
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
@@ -398,8 +355,6 @@ private fun PlaygroundSlider(
             valueRange = valueRange,
             visibilityThreshold = (valueRange.endInclusive - valueRange.start) * 0.005f,
             backdrop = backdrop,
-            adaptiveLuminance = adaptiveLuminance,
-            luminance = luminance,
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -411,8 +366,6 @@ private fun PlaygroundSwitch(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     backdrop: PrismalBackdrop,
-    adaptiveLuminance: Boolean,
-    luminance: () -> Float
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -423,9 +376,7 @@ private fun PlaygroundSwitch(
         PrismalGlassToggle(
             selected = { checked },
             onSelect = onCheckedChange,
-            backdrop = backdrop,
-            adaptiveLuminance = adaptiveLuminance,
-            luminance = luminance
+            backdrop = backdrop
         )
     }
 }
@@ -434,6 +385,8 @@ private fun PlaygroundSwitch(
 private fun <T> PlaygroundEnumChips(
     label: String,
     backdrop: PrismalBackdrop,
+    params: GlassPlaygroundParams,
+    luminance: () -> Float,
     options: List<T>,
     selected: T,
     onSelected: (T) -> Unit,
@@ -443,9 +396,11 @@ private fun <T> PlaygroundEnumChips(
         Text(label, style = MaterialTheme.typography.bodyMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             options.forEach { option ->
-                PrismalGlassButton(
+                PlaygroundGlassButton(
                     onClick = { onSelected(option) },
                     backdrop = backdrop,
+                    params = params,
+                    luminance = luminance,
                     modifier = Modifier.weight(1f),
                     surfaceColor = if (option == selected) {
                         Color.White.copy(alpha = 0.15f)

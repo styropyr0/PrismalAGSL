@@ -6,9 +6,12 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.styropyr0.prismal.PrismalGlassEffectProvider
 import com.styropyr0.prismal.depth.PrismalDepthInset
 import com.styropyr0.prismal.depth.PrismalDepthShadow
+import com.styropyr0.prismal.effects.applyPrismalGlassEffects
 import com.styropyr0.prismal.specular.PrismalSpecular
 import com.styropyr0.prismal.specular.PrismalSpecularStyle
 
@@ -95,4 +98,35 @@ class GlassPlaygroundParams {
             radius = depthInsetRadiusDp.dp,
             alpha = depthInsetAlpha
         )
+
+    fun glassEffects(
+        density: Density,
+        luminance: Float,
+    ): PrismalGlassEffectProvider.() -> Unit = {
+        applyPrismalGlassEffects(
+            density = density,
+            adaptiveLuminance = adaptiveLuminance,
+            luminance = luminance,
+            blurRadiusPx = with(density) { blurRadiusDp.dp.toPx() },
+            refractionHeightPx = with(density) { refractionHeightDp.dp.toPx() },
+            refractionAmountPx = with(density) { refractionAmountDp.dp.toPx() },
+            brightness = brightness,
+            saturation = saturation,
+            depthEffect = depthEffect,
+            chromaticAberration = chromaticAberration,
+            useVibrancy = useVibrancy
+        )
+    }
+
+    fun specularProvider(): (() -> PrismalSpecular?)? =
+        if (specularEnabled) ({ toSpecular() }) else null
+
+    fun depthShadowProvider(): (() -> PrismalDepthShadow?)? =
+        if (depthShadowEnabled) ({ toDepthShadow() }) else null
+
+    fun depthInsetProvider(): (() -> PrismalDepthInset?)? =
+        if (depthInsetEnabled) ({ toDepthInset() }) else null
+
+    fun surfaceTintColor(): Color =
+        Color.White.copy(alpha = surfaceTintAlpha)
 }

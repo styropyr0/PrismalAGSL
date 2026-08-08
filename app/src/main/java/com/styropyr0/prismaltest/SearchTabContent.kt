@@ -28,10 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.styropyr0.prismal.PrismalGlassSurface
 import com.styropyr0.prismal.shapes.PrismalCapsule
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 
@@ -52,7 +50,6 @@ fun SearchTabContent(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    val density = LocalDensity.current
     var query by remember { mutableStateOf("") }
 
     val filteredResults = remember(query) {
@@ -100,20 +97,14 @@ fun SearchTabContent(
                     }
                 } else {
                     items(filteredResults) { result ->
-                        PrismalGlassSurface(
+                        PlaygroundGlassSurface(
                             backdrop = backdrop,
+                            params = glassParams,
+                            luminance = luminance,
                             shape = { PrismalCapsule() },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(44.dp),
-                            adaptiveLuminance = glassParams.adaptiveLuminance,
-                            luminance = luminance,
-                            brightness = glassParams.brightness,
-                            saturation = glassParams.saturation,
-                            refractionHeightPx = with(density) { glassParams.refractionHeightDp.dp.toPx() },
-                            refractionAmountPx = with(density) { glassParams.refractionAmountDp.dp.toPx() },
-                            depthEffect = glassParams.depthEffect,
-                            chromaticAberration = glassParams.chromaticAberration,
                             content = {
                                 Row(
                                     modifier = Modifier
@@ -151,7 +142,6 @@ private fun IosGlassSearchBar(
     onQueryChange: (String) -> Unit,
     onClear: () -> Unit
 ) {
-    val density = LocalDensity.current
     val placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
     val textColor = MaterialTheme.colorScheme.onSurface
 
@@ -160,20 +150,14 @@ private fun IosGlassSearchBar(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        PrismalGlassSurface(
+        PlaygroundGlassSurface(
             backdrop = backdrop,
+            params = glassParams,
+            luminance = luminance,
             shape = { PrismalCapsule() },
             modifier = Modifier
                 .weight(1f)
                 .height(48.dp),
-            adaptiveLuminance = glassParams.adaptiveLuminance,
-            luminance = luminance,
-            brightness = glassParams.brightness,
-            saturation = glassParams.saturation,
-            refractionHeightPx = with(density) { glassParams.refractionHeightDp.dp.toPx() },
-            refractionAmountPx = with(density) { glassParams.refractionAmountDp.dp.toPx() },
-            depthEffect = glassParams.depthEffect,
-            chromaticAberration = glassParams.chromaticAberration,
             content = {
                 Row(
                     modifier = Modifier
