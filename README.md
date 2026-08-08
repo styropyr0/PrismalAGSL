@@ -1,12 +1,16 @@
 # Prismal
 
-**Liquid glass for Jetpack Compose** - backdrop sampling, blur, edge refraction, specular highlights, and interactive glass controls with automatic degradation on older Android versions.
+**Liquid glass for Jetpack Compose** — backdrop sampling, blur, edge refraction, specular highlights, and interactive glass controls with automatic degradation on older Android versions.
 
 [![JitPack](https://jitpack.io/v/styropyr0/PrismalAGSL.svg)](https://jitpack.io/#styropyr0/PrismalAGSL)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![minSdk 25](https://img.shields.io/badge/minSdk-25-blue)](https://developer.android.com/about/versions/nougat)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-BOM%202026.06.01-brightgreen)](https://developer.android.com/jetpack/compose)
 
 Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass surfaces sample live content behind them, refract it at the edges, and respond to touch with spring physics and press ripples. On devices that cannot run AGSL shaders or `RenderEffect`, the library falls back gracefully so you ship one API everywhere.
+
+> **Successor to [Prismal (OpenGL ES)](https://github.com/styropyr0/Prismal)**  
+> The original [styropyr0/Prismal](https://github.com/styropyr0/Prismal) library is still available. It targets the View system and renders glass effects with **OpenGL ES**. This repo (**PrismalAGSL**) is the Compose reimplementation: same visual language and component ideas, rebuilt on **AGSL**, `RenderEffect`, and Compose-first APIs. Use the original if you need OpenGL ES on Views; use this library for Jetpack Compose.
 
 ## Screenshots
 
@@ -26,6 +30,7 @@ Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass sur
 ## Table of contents
 
 - [Screenshots](#screenshots)
+- [Relation to Prismal (OpenGL ES)](#relation-to-prismal-opengl-es)
 - [Features](#features)
 - [Platform tiers](#platform-tiers)
 - [Requirements](#requirements)
@@ -41,11 +46,23 @@ Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass sur
 - [Bottom tab bar](#bottom-tab-bar)
 - [Demo app](#demo-app)
 - [Project structure](#project-structure)
+- [License](#license)
 - [Links](#links)
 
 ---
 
-## Features
+## Relation to Prismal (OpenGL ES)
+
+| | [Prismal](https://github.com/styropyr0/Prismal) | **PrismalAGSL** (this repo) |
+|---|---|---|
+| **UI** | Android Views | Jetpack Compose |
+| **Rendering** | OpenGL ES | AGSL + `RenderEffect` + legacy frost fallback |
+| **Status** | Maintained separately | Compose successor |
+| **Repo** | [github.com/styropyr0/Prismal](https://github.com/styropyr0/Prismal) | [github.com/styropyr0/PrismalAGSL](https://github.com/styropyr0/PrismalAGSL) |
+
+Both libraries share the same Prismal glass aesthetic (blur, refraction, interactive controls). APIs differ because this version is idiomatic Compose — modifiers, composables, and `PrismalBackdrop` layers instead of OpenGL ES surfaces on Views.
+
+---
 
 - **Backdrop-driven glass** — sample wallpaper, scrollable content, or other composables through frosted panels
 - **Three automatic pipeline tiers** — Legacy frost (API 25–30), `RenderEffect` blur (API 31–32), full AGSL liquid glass (API 33+)
@@ -532,7 +549,14 @@ app/                     # Demo catalog (not published)
 
 ---
 
+## License
+
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE).
+
+---
+
 ## Links
 
-- **GitHub:** [styropyr0/PrismalAGSL](https://github.com/styropyr0/PrismalAGSL)
+- **GitHub (this repo):** [styropyr0/PrismalAGSL](https://github.com/styropyr0/PrismalAGSL)
+- **Original Prismal (OpenGL ES):** [styropyr0/Prismal](https://github.com/styropyr0/Prismal)
 - **JitPack:** [jitpack.io/#styropyr0/PrismalAGSL](https://jitpack.io/#styropyr0/PrismalAGSL)
