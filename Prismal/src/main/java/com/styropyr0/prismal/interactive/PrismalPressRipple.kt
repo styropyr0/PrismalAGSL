@@ -15,6 +15,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.util.fastCoerceIn
 import com.styropyr0.prismal.PrismalShader
 import com.styropyr0.prismal.asComposeShader
+import com.styropyr0.prismal.internal.PrismalPressRippleShader
 import com.styropyr0.prismal.isAGSLShaderSupported
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -54,19 +55,7 @@ class PrismalPressRipple(
 
     private val shader =
         if (isAGSLShaderSupported()) {
-            PrismalShader(
-                """
-uniform float2 size;
-layout(color) uniform half4 color;
-uniform float radius;
-uniform float2 position;
-
-half4 main(float2 coord) {
-    float dist = distance(coord, position);
-    float intensity = smoothstep(radius, radius * 0.5, dist);
-    return color * intensity;
-}"""
-            )
+            PrismalShader(PrismalPressRippleShader)
         } else {
             null
         }
