@@ -1,6 +1,6 @@
 # Prismal
 
-**Liquid glass for Jetpack Compose** — backdrop sampling, blur, edge refraction, specular highlights, and interactive glass controls with automatic degradation on older Android versions.
+**Liquid glass for Jetpack Compose** - backdrop sampling, blur, edge refraction, specular highlights, and interactive glass controls with automatic degradation on older Android versions.
 
 [![JitPack](https://jitpack.io/v/styropyr0/PrismalAGSL.svg)](https://jitpack.io/#styropyr0/PrismalAGSL)
 [![minSdk 25](https://img.shields.io/badge/minSdk-25-blue)](https://developer.android.com/about/versions/nougat)
@@ -8,10 +8,26 @@
 
 Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass surfaces sample live content behind them, refract it at the edges, and respond to touch with spring physics and press ripples. On devices that cannot run AGSL shaders or `RenderEffect`, the library falls back gracefully so you ship one API everywhere.
 
+## Screenshots
+
+| | |
+|:---:|:---:|
+| Browse — toggle & slider | Refraction & blur settings |
+| ![Browse glass controls](docs/screenshots/browse-glass-controls.jpg) | ![Refraction and blur settings](docs/screenshots/refraction-blur-settings.jpg) |
+| Search | Profile |
+| ![Search tab](docs/screenshots/search.jpg) | ![Profile tab](docs/screenshots/profile.jpg) |
+| Profile menu & tabs | Profile with draggable widget |
+| ![Profile menu and bottom tabs](docs/screenshots/profile-menu-tabs.jpg) | ![Profile with widget preview](docs/screenshots/profile-with-widget.jpg) |
+| Widget preview | Widget preview — refraction |
+| ![Widget preview](docs/screenshots/widget-preview.jpg) | ![Widget preview refraction](docs/screenshots/widget-preview-refraction.jpg) |
+| Gradient glass settings | |
+| ![Gradient glass settings](docs/screenshots/gradient-glass-settings.jpg) | |
+
 ---
 
 ## Table of contents
 
+- [Screenshots](#screenshots)
 - [Features](#features)
 - [Platform tiers](#platform-tiers)
 - [Requirements](#requirements)
@@ -26,8 +42,8 @@ Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass sur
 - [Interactive primitives](#interactive-primitives)
 - [Bottom tab bar](#bottom-tab-bar)
 - [Demo app](#demo-app)
-- [Publishing a release](#publishing-a-release)
-- [License](#license)
+- [Project structure](#project-structure)
+- [Links](#links)
 
 ---
 
@@ -497,23 +513,6 @@ Run locally:
 
 ---
 
-## Publishing a release
-
-Maintainers:
-
-1. Commit and push to [github.com/styropyr0/PrismalAGSL](https://github.com/styropyr0/PrismalAGSL)
-2. Create a GitHub release with a version tag (for example `1.0.0`)
-3. Open [JitPack](https://jitpack.io/#styropyr0/PrismalAGSL) and build the tag
-4. Wait for a green build, then use that tag in Gradle
-
-Verify the Maven publication locally:
-
-```bash
-./gradlew :Prismal:publishReleasePublicationToMavenLocal
-```
-
----
-
 ## Project structure
 
 ```
@@ -531,26 +530,6 @@ Prismal/
 ├── PrismalLiquidGlass.kt
 └── Platform.kt          # Pipeline tier detection
 app/                     # Demo catalog (not published)
-```
-
----
-
-## License
-
-```
-Copyright 2026 styropyr0
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
 ```
 
 ---
