@@ -18,6 +18,9 @@ import com.styropyr0.prismal.shapes.PrismalCapsule
 
 internal val LocalPrismalBottomTabScale = staticCompositionLocalOf { { 1f } }
 
+/** Index of the tab that should appear selected (follows the droplet while dragging). */
+val LocalPrismalBottomTabHighlightedIndex = staticCompositionLocalOf { { 0 } }
+
 /**
  * Single tab item for use inside [PrismalGlassBottomTabs].
  *

@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -45,7 +46,6 @@ import com.styropyr0.prismal.sources.rememberPrismalMergedSource
 import com.styropyr0.prismal.sources.rememberPrismalGlassLayer
 import com.styropyr0.prismal.drawPrismalGlass
 import com.styropyr0.prismal.effects.applyPrismalGlassEffects
-import com.styropyr0.prismal.effects.prismalBlur
 import com.styropyr0.prismal.effects.prismalLens
 import com.styropyr0.prismal.specular.PrismalSpecular
 import com.styropyr0.prismal.interactive.PrismalSpringMotion
@@ -67,6 +67,11 @@ import kotlin.math.sign
  * @param backdrop Source sampled through the tab bar glass.
  * @param tabsCount Number of tabs (must match [content] child count).
  * @param content Tab items, typically [PrismalGlassBottomTab] composables.
+ * @param tintDropletContent When true, tints tab content sampled by the selection
+ *   droplet. Set to false to keep the colors from [content].
+ * @param dropletContentTint Color used when [tintDropletContent] is true. When `null`,
+ *   defaults to iOS-style blue (`#0088FF` light / `#0091FF` dark). Pass any [Color]
+ *   (e.g. [Color.Black]) to override.
  */
 @Composable
 fun PrismalGlassBottomTabs(
@@ -77,19 +82,18 @@ fun PrismalGlassBottomTabs(
     modifier: Modifier = Modifier,
     adaptiveLuminance: Boolean = false,
     luminance: () -> Float = { 0.5f },
+    tintDropletContent: Boolean = true,
+    dropletContentTint: Color? = null,
     content: @Composable RowScope.() -> Unit
 ) {
     val isLightTheme = !isSystemInDarkTheme()
-    val accentColor =
-        if (isLightTheme) Color(0xFF0088FF)
-        else Color(0xFF0091FF)
-    val containerColor =
-        if (isLightTheme) Color(0xFFFAFAFA).copy(0.4f)
-        else Color(0xFF121212).copy(0.4f)
+    val effectiveDropletTint = dropletContentTint ?: if (isLightTheme) Color(0xFF0088FF) else Color(0xFF0091FF)
+    val containerColor = if (isLightTheme) Color(0xFFFAFAFA).copy(0.4f)
+    else Color(0xFF121212).copy(0.4f)
 
     val tabsBackdrop = rememberPrismalGlassLayer()
     val dropletBackdrop = rememberPrismalMergedSource(backdrop, tabsBackdrop)
-    // Recompose once the hidden tab row has been positioned and recorded into [tabsBackdrop].
+
     tabsBackdrop.readSamplingState()
     val density = LocalDensity.current
 
@@ -116,7 +120,9 @@ fun PrismalGlassBottomTabs(
         var currentIndex by remember(selectedTabIndex) {
             mutableIntStateOf(selectedTabIndex())
         }
-        val dampedDragAnimation = remember(animationScope, tabsCount, tabWidth) {
+        var dragHighlightIndex by remember { mutableStateOf<Int?>(null) }
+        val highlightedTabIndex = dragHighlightIndex ?: selectedTabIndex()
+        val dampedDragAnimation = remember(animationScope, tabsCount, tabWidth, isLtr) {
             PrismalSpringMotion(
                 animationScope = animationScope,
                 initialValue = selectedTabIndex().toFloat(),
@@ -124,9 +130,12 @@ fun PrismalGlassBottomTabs(
                 visibilityThreshold = 0.001f,
                 initialScale = 1f,
                 pressedScale = 78f / 56f,
-                onDragStarted = {},
+                onDragStarted = {
+                    dragHighlightIndex = value.fastRoundToInt().coerceIn(0, tabsCount - 1)
+                },
                 onDragStopped = {
                     val targetIndex = targetValue.fastRoundToInt().coerceIn(0, tabsCount - 1)
+                    dragHighlightIndex = targetIndex
                     currentIndex = targetIndex
                     animateToValue(targetIndex.toFloat())
                     animationScope.launch {
@@ -137,10 +146,13 @@ fun PrismalGlassBottomTabs(
                     }
                 },
                 onDrag = { _, dragAmount ->
-                    updateValue(
-                        (targetValue + dragAmount.x / tabWidth * if (isLtr) 1f else -1f)
-                            .fastCoerceIn(0f, (tabsCount - 1).toFloat())
-                    )
+                    val nextValue =
+                        (targetValue + dragAmount.x / tabWidth * if (isLtr) 1f else -1f).fastCoerceIn(
+                            0f,
+                            (tabsCount - 1).toFloat()
+                        )
+                    updateValue(nextValue)
+                    dragHighlightIndex = nextValue.fastRoundToInt()
                     animationScope.launch {
                         offsetAnimation.snapTo(offsetAnimation.value + dragAmount.x)
                     }
@@ -151,6 +163,7 @@ fun PrismalGlassBottomTabs(
             snapshotFlow { selectedTabIndex() }
                 .collectLatest { index ->
                     currentIndex = index
+                    dragHighlightIndex = null
                 }
         }
         LaunchedEffect(dampedDragAnimation) {
@@ -175,45 +188,46 @@ fun PrismalGlassBottomTabs(
             )
         }
 
-        Row(
-            Modifier
-                .graphicsLayer {
-                    translationX = panelOffset
-                }
-                .drawPrismalGlass(
-                    backdrop = backdrop,
-                    shape = { PrismalCapsule() },
-                    effects = {
-                        applyPrismalGlassEffects(
-                            density = density,
-                            adaptiveLuminance = adaptiveLuminance,
-                            luminance = luminance(),
-                            blurRadiusPx = with(density) { 8.dp.toPx() },
-                            refractionHeightPx = with(density) { 24.dp.toPx() },
-                            refractionAmountPx = with(density) { 24.dp.toPx() }
-                        )
-                    },
-                    layerBlock = {
-                        val progress = dampedDragAnimation.pressProgress
-                        val scale = lerp(1f, 1f + 16.dp.toPx() / size.width, progress)
-                        scaleX = scale
-                        scaleY = scale
-                    },
-                    onDrawSurface = { drawRect(containerColor) }
-                )
-                .then(interactivePrismalSpecular.modifier)
-                .height(64.dp)
-                .fillMaxWidth()
-                .padding(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
-
         CompositionLocalProvider(
             LocalPrismalBottomTabScale provides {
                 lerp(1f, 1.2f, dampedDragAnimation.pressProgress)
-            }
+            },
+            LocalPrismalBottomTabHighlightedIndex provides { highlightedTabIndex }
         ) {
+            Row(
+                Modifier
+                    .graphicsLayer {
+                        translationX = panelOffset
+                    }
+                    .drawPrismalGlass(
+                        backdrop = backdrop,
+                        shape = { PrismalCapsule() },
+                        effects = {
+                            applyPrismalGlassEffects(
+                                density = density,
+                                adaptiveLuminance = adaptiveLuminance,
+                                luminance = luminance(),
+                                blurRadiusPx = with(density) { 8.dp.toPx() },
+                                refractionHeightPx = with(density) { 24.dp.toPx() },
+                                refractionAmountPx = with(density) { 24.dp.toPx() }
+                            )
+                        },
+                        layerBlock = {
+                            val progress = dampedDragAnimation.pressProgress
+                            val scale = lerp(1f, 1f + 16.dp.toPx() / size.width, progress)
+                            scaleX = scale
+                            scaleY = scale
+                        },
+                        onDrawSurface = { drawRect(containerColor) }
+                    )
+                    .then(interactivePrismalSpecular.modifier)
+                    .height(64.dp)
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                content = content
+            )
+
             Row(
                 Modifier
                     .clearAndSetSemantics {}
@@ -246,15 +260,23 @@ fun PrismalGlassBottomTabs(
                     .height(56.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp)
-                    .drawWithContent {
-                        val paint = Paint().apply { colorFilter = ColorFilter.tint(accentColor) }
-                        drawContext.canvas.saveLayer(
-                            Rect(0f, 0f, size.width, size.height),
-                            paint
-                        )
-                        drawContent()
-                        drawContext.canvas.restore()
-                    },
+                    .then(
+                        if (tintDropletContent) {
+                            Modifier.drawWithContent {
+                                val paint = Paint().apply {
+                                    colorFilter = ColorFilter.tint(effectiveDropletTint)
+                                }
+                                drawContext.canvas.saveLayer(
+                                    Rect(0f, 0f, size.width, size.height),
+                                    paint
+                                )
+                                drawContent()
+                                drawContext.canvas.restore()
+                            }
+                        } else {
+                            Modifier
+                        }
+                    ),
                 verticalAlignment = Alignment.CenterVertically,
                 content = content
             )

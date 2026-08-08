@@ -47,10 +47,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.styropyr0.prismal.components.LocalPrismalBottomTabHighlightedIndex
 import com.styropyr0.prismal.components.PrismalGlassBottomTab
 import com.styropyr0.prismal.components.PrismalGlassBottomTabs
 import com.styropyr0.prismal.components.PrismalGlassSlider
-import com.styropyr0.prismal.components.PrismalGlassToggle
 import com.styropyr0.prismal.components.PrismalGradientGlassPanel
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
 import com.styropyr0.prismal.shapes.PrismalCapsule
@@ -109,28 +109,29 @@ fun CatalogPlaygroundScreen() {
                     onTabSelected = { selectedTab = it },
                     backdrop = backdropLayer,
                     tabsCount = 4,
+                    dropletContentTint = Color.Black,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                 ) {
                     IosTabItem(
-                        selected = selectedTab == PlaygroundTab.Home.ordinal,
+                        index = PlaygroundTab.Home.ordinal,
                         icon = Icons.Default.Home,
                         label = "Home",
                         onClick = { selectedTab = PlaygroundTab.Home.ordinal }
                     )
                     IosTabItem(
-                        selected = selectedTab == PlaygroundTab.Search.ordinal,
+                        index = PlaygroundTab.Search.ordinal,
                         icon = Icons.Default.Search,
                         label = "Search",
                         onClick = { selectedTab = PlaygroundTab.Search.ordinal }
                     )
                     IosTabItem(
-                        selected = selectedTab == PlaygroundTab.Profile.ordinal,
+                        index = PlaygroundTab.Profile.ordinal,
                         icon = Icons.Default.Person,
                         label = "Profile",
                         onClick = { selectedTab = PlaygroundTab.Profile.ordinal }
                     )
                     IosTabItem(
-                        selected = selectedTab == PlaygroundTab.Settings.ordinal,
+                        index = PlaygroundTab.Settings.ordinal,
                         icon = Icons.Default.Settings,
                         label = "Settings",
                         onClick = { selectedTab = PlaygroundTab.Settings.ordinal }
@@ -195,22 +196,28 @@ fun CatalogPlaygroundScreen() {
 
 @Composable
 private fun RowScope.IosTabItem(
-    selected: Boolean,
+    index: Int,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     onClick: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val selectedColor = if (isDark) Color.White else Color.Black
+    val unselectedColor = Color(0xFF8E8E93)
+    val highlightedIndex = LocalPrismalBottomTabHighlightedIndex.current()
+    val selected = highlightedIndex == index
+
     PrismalGlassBottomTab(onClick = onClick) {
         Icon(
             imageVector = icon,
             contentDescription = label,
             modifier = Modifier.size(24.dp),
-            tint = if (selected) IosTheme.colors.systemBlue else IosTheme.colors.secondaryLabel
+            tint = if (selected) selectedColor else unselectedColor
         )
         Text(
             text = label,
             style = IosTheme.tabLabel,
-            color = if (selected) IosTheme.colors.systemBlue else IosTheme.colors.secondaryLabel,
+            color = if (selected) selectedColor else unselectedColor,
             textAlign = TextAlign.Center
         )
     }
