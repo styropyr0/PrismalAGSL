@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.TileMode
 import com.styropyr0.prismal.PrismalGlassEffectProvider
 import com.styropyr0.prismal.isRenderEffectSupported
+import kotlin.math.max
 
 /**
  * Applies a Gaussian blur to the backdrop sample.
@@ -16,7 +17,15 @@ fun PrismalGlassEffectProvider.prismalBlur(
     @FloatRange(from = 0.0) radius: Float,
     edgeTreatment: TileMode = TileMode.Clamp
 ) {
-    if (!isRenderEffectSupported()) return
+    if (!isRenderEffectSupported()) {
+        if (radius > 0f) {
+            legacyFrostStrength = max(
+                legacyFrostStrength,
+                (radius / 24f).coerceIn(0f, 1f) * 0.42f
+            )
+        }
+        return
+    }
     if (radius <= 0f) return
 
     if (edgeTreatment != TileMode.Clamp || renderEffect != null) {

@@ -27,6 +27,7 @@ import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.node.observeReads
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.geometry.isSpecified
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -350,6 +351,9 @@ private class DrawPrismalGlassNode(
 
         onDrawBehind?.invoke(this)
         drawPrismalGlassLayer()
+        if (!isRenderEffectSupported() && effectScope.legacyFrostStrength > 0f) {
+            drawRect(Color.White.copy(alpha = effectScope.legacyFrostStrength))
+        }
         onDrawSurface?.invoke(this)
         drawContent()
         onDrawFront?.invoke(this)
@@ -394,12 +398,15 @@ private class DrawPrismalGlassNode(
     }
 
     private fun updateEffects() {
-        if (!isRenderEffectSupported()) return
         if (!effectScope.size.isSpecified) return
 
         effectScope.apply(effects)
-        graphicsLayer?.renderEffect = effectScope.renderEffect
         padding = effectScope.padding
+        if (isRenderEffectSupported()) {
+            graphicsLayer?.renderEffect = effectScope.renderEffect
+        } else {
+            graphicsLayer?.renderEffect = null
+        }
     }
 
     override fun onAttach() {

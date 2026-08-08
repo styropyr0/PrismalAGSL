@@ -2,7 +2,6 @@ package com.styropyr0.prismaltest
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,14 +20,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.PrismalBackdrop
+import com.styropyr0.prismal.PrismalGlass
 import com.styropyr0.prismal.components.PrismalGlassButton
 import com.styropyr0.prismal.components.PrismalGlassSlider
 import com.styropyr0.prismal.components.PrismalGlassToggle
 import com.styropyr0.prismal.components.PrismalGradientGlassPanel
-import com.styropyr0.prismal.drawPrismalGlass
-import com.styropyr0.prismal.effects.applyPrismalGlassEffects
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
-import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 
 @Composable
@@ -65,55 +62,24 @@ fun GlassSettingsPlayground(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
+                Text(
+                    text = "Pipeline: ${PrismalGlass.pipeline.name}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+                )
             }
         }
 
         item {
             PlaygroundSection(title = "Live Preview") {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Box(
-                        Modifier
+                    TunableGlassPanel(
+                        backdrop = backdrop,
+                        params = params,
+                        luminance = luminance,
+                        modifier = Modifier
                             .fillMaxWidth()
                             .height(160.dp)
-                            .drawPrismalGlass(
-                                backdrop = backdrop,
-                                shape = { PrismalRoundedRectangle(24.dp) },
-                                effects = {
-                                    applyPrismalGlassEffects(
-                                        density = density,
-                                        adaptiveLuminance = params.adaptiveLuminance,
-                                        luminance = luminance(),
-                                        blurRadiusPx = with(density) { params.blurRadiusDp.dp.toPx() },
-                                        refractionHeightPx = with(density) { params.refractionHeightDp.dp.toPx() },
-                                        refractionAmountPx = with(density) { params.refractionAmountDp.dp.toPx() },
-                                        brightness = params.brightness,
-                                        saturation = params.saturation,
-                                        depthEffect = params.depthEffect,
-                                        chromaticAberration = params.chromaticAberration,
-                                        useVibrancy = params.useVibrancy
-                                    )
-                                },
-                                specular = if (params.specularEnabled) {
-                                    { params.toSpecular() }
-                                } else {
-                                    null
-                                },
-                                depthShadow = if (params.depthShadowEnabled) {
-                                    { params.toDepthShadow() }
-                                } else {
-                                    null
-                                },
-                                depthInset = if (params.depthInsetEnabled) {
-                                    { params.toDepthInset() }
-                                } else {
-                                    null
-                                },
-                                onDrawSurface = {
-                                    if (params.surfaceTintAlpha > 0f) {
-                                        drawRect(Color.White.copy(alpha = params.surfaceTintAlpha))
-                                    }
-                                }
-                            )
                     )
                     PrismalGradientGlassPanel(
                         backdrop = backdrop,

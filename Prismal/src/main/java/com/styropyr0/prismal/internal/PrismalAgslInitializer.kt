@@ -18,11 +18,14 @@ package com.styropyr0.prismal.internal
 
 import android.content.Context
 import androidx.startup.Initializer
+import com.styropyr0.prismal.isAGSLShaderSupported
 
 internal class PrismalAgslInitializer : Initializer<Unit> {
 
     override fun create(context: Context) {
-        PrismalAgslAssets.bind(context.applicationContext.assets)
+        if (isAGSLShaderSupported()) {
+            PrismalAgslAssets.bind(context.applicationContext.assets)
+        }
     }
 
     override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()

@@ -3,6 +3,7 @@ package com.styropyr0.prismal.effects
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import com.styropyr0.prismal.PrismalGlass
 import com.styropyr0.prismal.PrismalGlassEffectProvider
 import kotlin.math.sign
 
@@ -66,7 +67,7 @@ fun PrismalGlassEffectProvider.applyPrismalGlassEffects(
         }
     }
 
-    if (refractionHeightPx > 0f && refractionAmountPx > 0f) {
+    if (PrismalGlass.supportsRefraction && refractionHeightPx > 0f && refractionAmountPx > 0f) {
         prismalLens(
             refractionHeight = refractionHeightPx,
             refractionAmount = refractionAmountPx,

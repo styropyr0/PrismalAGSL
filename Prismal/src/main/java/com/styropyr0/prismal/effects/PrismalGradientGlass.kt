@@ -6,6 +6,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.styropyr0.prismal.PrismalGlassEffectProvider
 import com.styropyr0.prismal.internal.PrismalGradientGlassShader
+import com.styropyr0.prismal.isAGSLShaderSupported
 import kotlin.math.sign
 
 /**
@@ -43,6 +44,13 @@ fun PrismalGlassEffectProvider.prismalGradientGlass(
 
     if (effectiveBlur > 0f) {
         prismalBlur(effectiveBlur)
+    }
+
+    if (!isAGSLShaderSupported()) {
+        if (tintIntensity > 0f && tint.alpha > 0f) {
+            legacyFrostStrength = maxOf(legacyFrostStrength, tintIntensity * 0.35f)
+        }
+        return
     }
 
     prismalAGSLShaderEffect(

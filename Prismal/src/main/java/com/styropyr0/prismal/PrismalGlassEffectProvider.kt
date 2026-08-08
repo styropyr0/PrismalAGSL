@@ -35,6 +35,12 @@ sealed interface PrismalGlassEffectProvider : Density, PrismalShaderCache {
 
     /** Chained render effect applied to the backdrop sample. */
     var renderEffect: RenderEffect?
+
+    /**
+     * Frosted overlay strength in `[0, 1]` used on [PrismalGlassPipeline.Legacy] devices when
+     * backdrop blur is unavailable.
+     */
+    var legacyFrostStrength: Float
 }
 
 internal abstract class PrismalGlassEffectScopeImpl : PrismalGlassEffectProvider, PrismalShaderCache {
@@ -45,6 +51,7 @@ internal abstract class PrismalGlassEffectScopeImpl : PrismalGlassEffectProvider
     override var layoutDirection: LayoutDirection = LayoutDirection.Ltr
     override var padding: Float = 0f
     override var renderEffect: RenderEffect? = null
+    override var legacyFrostStrength: Float = 0f
 
     private val runtimeShaderCache = PrismalShaderCacheImpl()
 
@@ -76,6 +83,7 @@ internal abstract class PrismalGlassEffectScopeImpl : PrismalGlassEffectProvider
     fun apply(effects: PrismalGlassEffectProvider.() -> Unit) {
         padding = 0f
         renderEffect = null
+        legacyFrostStrength = 0f
         effects()
     }
 
@@ -86,6 +94,7 @@ internal abstract class PrismalGlassEffectScopeImpl : PrismalGlassEffectProvider
         layoutDirection = LayoutDirection.Ltr
         padding = 0f
         renderEffect = null
+        legacyFrostStrength = 0f
         runtimeShaderCache.clear()
     }
 }

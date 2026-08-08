@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -46,12 +45,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.styropyr0.prismal.PrismalGlass
 import com.styropyr0.prismal.PrismalGlassSurface
 import com.styropyr0.prismal.components.PrismalGlassBottomTab
 import com.styropyr0.prismal.components.PrismalGlassBottomTabs
@@ -76,11 +75,6 @@ private enum class PlaygroundTab {
 
 @Composable
 fun CatalogPlaygroundScreen() {
-    if (!PrismalGlass.isSupported()) {
-        UnsupportedDeviceMessage()
-        return
-    }
-
     val backdropLayer = rememberPrismalGlassLayer()
     val glassParams = remember { GlassPlaygroundParams() }
     var selectedTab by remember { mutableIntStateOf(PlaygroundTab.Home.ordinal) }
@@ -172,16 +166,18 @@ fun CatalogPlaygroundScreen() {
                     contentPadding = contentPadding
                 )
 
-                PlaygroundTab.Search -> PlaceholderTabContent(
-                    title = "Search",
-                    message = "Search is a placeholder tab in this demo.",
+                PlaygroundTab.Search -> SearchTabContent(
+                    backdrop = backdropLayer,
+                    glassParams = glassParams,
+                    luminance = luminance,
                     modifier = Modifier.padding(innerPadding),
                     contentPadding = contentPadding
                 )
 
-                PlaygroundTab.Profile -> PlaceholderTabContent(
-                    title = "Profile",
-                    message = "Profile is a placeholder tab in this demo.",
+                PlaygroundTab.Profile -> ProfileTabContent(
+                    backdrop = backdropLayer,
+                    glassParams = glassParams,
+                    luminance = luminance,
                     modifier = Modifier.padding(innerPadding),
                     contentPadding = contentPadding
                 )
@@ -206,7 +202,7 @@ fun CatalogPlaygroundScreen() {
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .statusBarsPadding()
-                .padding(16.dp)
+                .padding(top = 12.dp, end = 20.dp)
         )
     }
 }
@@ -415,52 +411,6 @@ private fun CatalogTabContent(
 }
 
 @Composable
-private fun PlaceholderTabContent(
-    title: String,
-    message: String,
-    modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(contentPadding),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun UnsupportedDeviceMessage() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Prismal requires Android 13 (API 33+) with AGSL shader support.",
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
-}
-
-@Composable
 private fun BackgroundImagePickerButton(
     backdrop: PrismalGlassLayer,
     onClick: () -> Unit,
@@ -469,7 +419,7 @@ private fun BackgroundImagePickerButton(
     PrismalGlassSurface(
         backdrop = backdrop,
         shape = { PrismalCapsule() },
-        modifier = modifier.size(52.dp),
+        modifier = modifier.size(60.dp),
         onClick = onClick,
         content = {
             Box(
@@ -477,9 +427,10 @@ private fun BackgroundImagePickerButton(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.AddPhotoAlternate,
+                    painter = painterResource(R.drawable.ic_img_picker),
                     contentDescription = stringResource(R.string.pick_background_image),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(30.dp),
+                    tint = Color.Black
                 )
             }
         }
