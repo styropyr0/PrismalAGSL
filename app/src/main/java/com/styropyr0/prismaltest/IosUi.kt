@@ -33,12 +33,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.PrismalBackdrop
+import com.styropyr0.prismal.components.PrismalGlassSlider
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
 
 object IosLayout {
     val screenHorizontal = 16.dp
     val sectionSpacing = 22.dp
-    val groupCorner = 14.dp
+    val groupCorner = 22.dp
     val rowMinHeight = 50.dp
     val rowHorizontalPadding = 20.dp
     val rowVerticalPadding = 14.dp
@@ -281,7 +282,7 @@ fun IosSliderRow(
             Text(title, style = IosTheme.body, color = IosTheme.colors.label)
             Text(valueLabel, style = IosTheme.body, color = IosTheme.colors.secondaryLabel)
         }
-        com.styropyr0.prismal.components.PrismalGlassSlider(
+        PrismalGlassSlider(
             value = { value },
             onValueChange = onValueChange,
             valueRange = valueRange,
@@ -353,7 +354,7 @@ fun IosSegmentedControl(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(2.dp),
+                    .padding(4.dp),
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 options.forEachIndexed { index, label ->
@@ -364,7 +365,7 @@ fun IosSegmentedControl(
                             .clip(RoundedCornerShape(9.dp))
                             .background(
                                 if (selected) {
-                                    IosTheme.colors.secondaryGroupedBackground.copy(alpha = 0.85f)
+                                    IosTheme.colors.systemBlue.copy(alpha = 0.85f)
                                 } else {
                                     Color.Transparent
                                 }

@@ -1,5 +1,8 @@
 package com.styropyr0.prismal.internal
 
+import android.graphics.RenderEffect.createChainEffect
+import android.graphics.RenderEffect.createColorFilterEffect
+import android.graphics.RenderEffect.createRuntimeShaderEffect
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.ColorFilter
@@ -12,7 +15,7 @@ import com.styropyr0.prismal.asPrismalShaderHost
 @RequiresApi(Build.VERSION_CODES.S)
 internal fun RenderEffect?.chain(other: RenderEffect): RenderEffect {
     return if (this != null) {
-        android.graphics.RenderEffect.createChainEffect(
+        createChainEffect(
             other.asAndroidRenderEffect(),
             this.asAndroidRenderEffect()
         ).asComposeRenderEffect()
@@ -26,7 +29,7 @@ internal fun PrismalShaderEffect(
     runtimeShader: PrismalShader,
     uniformShaderName: String
 ): RenderEffect {
-    return android.graphics.RenderEffect.createRuntimeShaderEffect(
+    return createRuntimeShaderEffect(
         runtimeShader.asPrismalShaderHost(),
         uniformShaderName
     ).asComposeRenderEffect()
@@ -38,12 +41,12 @@ internal fun ColorFilterEffect(
     colorFilter: ColorFilter
 ): RenderEffect {
     return if (renderEffect != null) {
-        android.graphics.RenderEffect.createColorFilterEffect(
+        createColorFilterEffect(
             colorFilter.asAndroidColorFilter(),
             renderEffect.asAndroidRenderEffect()
         ).asComposeRenderEffect()
     } else {
-        android.graphics.RenderEffect.createColorFilterEffect(
+        createColorFilterEffect(
             colorFilter.asAndroidColorFilter(),
         ).asComposeRenderEffect()
     }

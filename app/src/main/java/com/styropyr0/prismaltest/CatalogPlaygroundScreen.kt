@@ -21,10 +21,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -51,7 +51,6 @@ import com.styropyr0.prismal.components.LocalPrismalBottomTabHighlightedIndex
 import com.styropyr0.prismal.components.PrismalGlassBottomTab
 import com.styropyr0.prismal.components.PrismalGlassBottomTabs
 import com.styropyr0.prismal.components.PrismalGlassSlider
-import com.styropyr0.prismal.components.PrismalGradientGlassPanel
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
 import com.styropyr0.prismal.shapes.PrismalCapsule
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
@@ -88,9 +87,7 @@ fun CatalogPlaygroundScreen() {
     val pickBackgroundImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        if (uri != null) {
-            backgroundImageUri = uri
-        }
+        if (uri != null) backgroundImageUri = uri
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -114,25 +111,25 @@ fun CatalogPlaygroundScreen() {
                 ) {
                     IosTabItem(
                         index = PlaygroundTab.Home.ordinal,
-                        icon = Icons.Default.Home,
+                        icon = Icons.Rounded.Home,
                         label = "Home",
                         onClick = { selectedTab = PlaygroundTab.Home.ordinal }
                     )
                     IosTabItem(
                         index = PlaygroundTab.Search.ordinal,
-                        icon = Icons.Default.Search,
+                        icon = Icons.Rounded.Search,
                         label = "Search",
                         onClick = { selectedTab = PlaygroundTab.Search.ordinal }
                     )
                     IosTabItem(
                         index = PlaygroundTab.Profile.ordinal,
-                        icon = Icons.Default.Person,
+                        icon = Icons.Rounded.Person,
                         label = "Profile",
                         onClick = { selectedTab = PlaygroundTab.Profile.ordinal }
                     )
                     IosTabItem(
                         index = PlaygroundTab.Settings.ordinal,
-                        icon = Icons.Default.Settings,
+                        icon = Icons.Rounded.Settings,
                         label = "Settings",
                         onClick = { selectedTab = PlaygroundTab.Settings.ordinal }
                     )
@@ -203,7 +200,7 @@ private fun RowScope.IosTabItem(
 ) {
     val isDark = isSystemInDarkTheme()
     val selectedColor = if (isDark) Color.White else Color.Black
-    val unselectedColor = Color(0xFF8E8E93)
+    val unselectedColor = Color.White
     val highlightedIndex = LocalPrismalBottomTabHighlightedIndex.current()
     val selected = highlightedIndex == index
 
@@ -266,7 +263,7 @@ private fun CatalogTabContent(
                         params = glassParams,
                         luminance = luminance,
                         modifier = Modifier.weight(1f),
-                        tint = Color(0xFF5856D6)
+                        tint = Color(0x8FFFEF82)
                     ) {
                         Text("Tinted", style = IosTheme.body, color = IosTheme.colors.label)
                     }
@@ -353,48 +350,33 @@ private fun CatalogTabContent(
 
         item {
             IosSectionHeader("Showcase")
-            IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
-                Column(Modifier.padding(IosLayout.groupInnerPadding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    PrismalGradientGlassPanel(
-                        backdrop = backdrop,
-                        height = 140.dp,
-                        adaptiveLuminance = glassParams.adaptiveLuminance,
-                        luminance = luminance,
-                        blurRadiusDp = glassParams.blurRadiusDp.dp,
-                        refractionHeightDp = glassParams.refractionHeightDp.dp,
-                        refractionAmountDp = glassParams.refractionAmountDp.dp,
-                        refractionBottomWeight = glassParams.gradientBottomWeight,
-                        blurFadeEnd = glassParams.gradientBlurFadeEnd,
-                        chromaticAberration = glassParams.chromaticAberration
-                    )
-                    IosGroupDivider(showLeadingInset = false)
-                    PlaygroundGlassSurface(
-                        backdrop = backdrop,
-                        params = glassParams,
-                        luminance = luminance,
-                        shape = { PrismalRoundedRectangle(IosLayout.groupCorner) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(88.dp),
-                        onClick = {},
-                        content = {
-                            Column(
-                                Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = IosLayout.groupInnerPadding),
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text("Glass Surface", style = IosTheme.headline, color = IosTheme.colors.label)
-                                Text(
-                                    "Tap for press ripple",
-                                    style = IosTheme.footnote,
-                                    color = IosTheme.colors.secondaryLabel
-                                )
-                            }
-                        }
-                    )
+            PlaygroundGlassSurface(
+                backdrop = backdrop,
+                params = glassParams,
+                luminance = luminance,
+                shape = { PrismalRoundedRectangle(IosLayout.groupCorner) },
+                modifier = Modifier.fillMaxWidth().height(88.dp).padding(horizontal = IosLayout.rowHorizontalPadding),
+                onClick = {},
+                content = {
+                    Column(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = IosLayout.groupInnerPadding),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            "Glass Surface",
+                            style = IosTheme.headline,
+                            color = IosTheme.colors.label
+                        )
+                        Text(
+                            "Tap for press ripple",
+                            style = IosTheme.footnote,
+                            color = IosTheme.colors.secondaryLabel
+                        )
+                    }
                 }
-            }
+            )
             IosSectionFooter("Component appearance follows values from the Settings tab.")
         }
     }

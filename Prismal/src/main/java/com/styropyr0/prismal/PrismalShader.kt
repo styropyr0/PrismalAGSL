@@ -1,5 +1,6 @@
 package com.styropyr0.prismal
 
+import android.graphics.RuntimeShader
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
@@ -32,7 +33,7 @@ interface PrismalShader {
 /** Compiles an AGSL shader string into a [PrismalShader]. Requires API 33+. */
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun PrismalShader(@Language("AGSL") shaderString: String): PrismalShader {
-    val shader = android.graphics.RuntimeShader(shaderString)
+    val shader = RuntimeShader(shaderString)
     return PrismalShaderHost(shader)
 }
 
@@ -42,13 +43,12 @@ fun PrismalShader.asComposeShader(): Shader {
 }
 
 /** Returns the underlying platform [android.graphics.RuntimeShader]. Requires API 33+. */
-fun PrismalShader.asPrismalShaderHost(): android.graphics.RuntimeShader {
+fun PrismalShader.asPrismalShaderHost(): RuntimeShader {
     return (this as PrismalShaderHost).shader
 }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-internal class PrismalShaderHost(val shader: android.graphics.RuntimeShader) : PrismalShader {
-
+internal class PrismalShaderHost(val shader: RuntimeShader) : PrismalShader {
     override fun setFloatUniform(name: String, value: Float) {
         shader.setFloatUniform(name, value)
     }

@@ -9,7 +9,6 @@ import androidx.compose.ui.unit.LayoutDirection
 
 @Immutable
 internal class PrismalShapeLayout(val shapeBlock: () -> Shape) {
-
     private var _shape: Shape? = null
     private var _outline: Outline? = null
     private var _size: Size = Size.Unspecified
@@ -20,12 +19,7 @@ internal class PrismalShapeLayout(val shapeBlock: () -> Shape) {
         get() = shapeBlock()
 
     val shape = object : Shape {
-
-        override fun createOutline(
-            size: Size,
-            layoutDirection: LayoutDirection,
-            density: Density
-        ): Outline {
+        override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
             val shape = shapeBlock()
             if (_shape != shape) {
                 _shape = shape

@@ -1,20 +1,16 @@
 package com.styropyr0.prismaltest
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.PrismalGlass
-import com.styropyr0.prismal.components.PrismalGradientGlassPanel
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 
@@ -49,30 +45,6 @@ fun GlassSettingsPlayground(
                     showChevron = true,
                     onClick = onPickWallpaper
                 )
-                IosGroupDivider()
-                Column(Modifier.padding(IosLayout.groupInnerPadding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    TunableGlassPanel(
-                        backdrop = backdrop,
-                        params = params,
-                        luminance = luminance,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(132.dp),
-                        cornerRadius = IosLayout.groupCorner
-                    )
-                    PrismalGradientGlassPanel(
-                        backdrop = backdrop,
-                        height = 96.dp,
-                        adaptiveLuminance = params.adaptiveLuminance,
-                        luminance = luminance,
-                        blurRadiusDp = params.blurRadiusDp.dp,
-                        refractionHeightDp = params.refractionHeightDp.dp,
-                        refractionAmountDp = params.refractionAmountDp.dp,
-                        refractionBottomWeight = params.gradientBottomWeight,
-                        blurFadeEnd = params.gradientBlurFadeEnd,
-                        chromaticAberration = params.chromaticAberration
-                    )
-                }
             }
             IosSectionFooter("Live preview of the current glass configuration.")
         }
@@ -113,7 +85,7 @@ fun GlassSettingsPlayground(
                     value = params.refractionAmountDp,
                     valueLabel = "${params.refractionAmountDp.toInt()} pt",
                     onValueChange = { params.refractionAmountDp = it },
-                    valueRange = 0f..48f,
+                    valueRange = 0f..60f,
                     backdrop = backdrop
                 )
                 IosGroupDivider()
