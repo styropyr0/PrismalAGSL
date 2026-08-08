@@ -4,24 +4,16 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.PrismalGlass
-import com.styropyr0.prismal.components.PrismalGlassSlider
-import com.styropyr0.prismal.components.PrismalGlassToggle
 import com.styropyr0.prismal.components.PrismalGradientGlassPanel
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
 import com.styropyr0.prismal.sources.PrismalGlassLayer
@@ -31,6 +23,7 @@ fun GlassSettingsPlayground(
     backdrop: PrismalBackdrop,
     backdropLayer: PrismalGlassLayer,
     params: GlassPlaygroundParams,
+    onPickWallpaper: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
@@ -42,45 +35,34 @@ fun GlassSettingsPlayground(
     )
     val luminance = { adaptiveLuminance.luminance }
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = contentPadding,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
+    IosGroupedScreen(modifier = modifier, contentPadding = contentPadding) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = "Glass Playground",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Tune liquid glass parameters and preview changes live.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-                Text(
-                    text = "Pipeline: ${PrismalGlass.pipeline.name}",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
-                )
-            }
+            IosLargeTitle(title = "Settings")
         }
 
         item {
-            PlaygroundSection(title = "Live Preview") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            IosSectionHeader("Appearance")
+            IosGlassGroup(backdrop = backdrop, params = params, luminance = luminance) {
+                IosListRow(
+                    title = "Wallpaper",
+                    value = "Change",
+                    showChevron = true,
+                    onClick = onPickWallpaper
+                )
+                IosGroupDivider()
+                Column(Modifier.padding(IosLayout.groupInnerPadding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     TunableGlassPanel(
                         backdrop = backdrop,
                         params = params,
                         luminance = luminance,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(160.dp)
+                            .height(132.dp),
+                        cornerRadius = IosLayout.groupCorner
                     )
                     PrismalGradientGlassPanel(
                         backdrop = backdrop,
-                        height = 120.dp,
+                        height = 96.dp,
                         adaptiveLuminance = params.adaptiveLuminance,
                         luminance = luminance,
                         blurRadiusDp = params.blurRadiusDp.dp,
@@ -92,328 +74,253 @@ fun GlassSettingsPlayground(
                     )
                 }
             }
+            IosSectionFooter("Live preview of the current glass configuration.")
         }
 
         item {
-            PlaygroundSection(title = "Refraction & Blur") {
-                PlaygroundSlider(
-                    label = "Blur radius",
+            IosSectionHeader("Platform")
+            IosGlassGroup(backdrop = backdrop, params = params, luminance = luminance) {
+                IosListRow(
+                    title = "Pipeline",
+                    value = PrismalGlass.pipeline.name
+                )
+            }
+        }
+
+        item {
+            IosSectionHeader("Refraction & Blur")
+            IosGlassGroup(backdrop = backdrop, params = params, luminance = luminance) {
+                IosSliderRow(
+                    title = "Blur Radius",
                     value = params.blurRadiusDp,
-                    valueRange = 0f..24f,
-                    valueLabel = { "${it.toInt()} dp" },
+                    valueLabel = "${params.blurRadiusDp.toInt()} pt",
                     onValueChange = { params.blurRadiusDp = it },
-                    backdrop = backdrop,
+                    valueRange = 0f..24f,
+                    backdrop = backdrop
                 )
-                PlaygroundSlider(
-                    label = "Refraction height",
+                IosGroupDivider()
+                IosSliderRow(
+                    title = "Refraction Height",
                     value = params.refractionHeightDp,
-                    valueRange = 0f..32f,
-                    valueLabel = { "${it.toInt()} dp" },
+                    valueLabel = "${params.refractionHeightDp.toInt()} pt",
                     onValueChange = { params.refractionHeightDp = it },
-                    backdrop = backdrop,
+                    valueRange = 0f..32f,
+                    backdrop = backdrop
                 )
-                PlaygroundSlider(
-                    label = "Refraction amount",
+                IosGroupDivider()
+                IosSliderRow(
+                    title = "Refraction Amount",
                     value = params.refractionAmountDp,
-                    valueRange = 0f..48f,
-                    valueLabel = { "${it.toInt()} dp" },
+                    valueLabel = "${params.refractionAmountDp.toInt()} pt",
                     onValueChange = { params.refractionAmountDp = it },
-                    backdrop = backdrop,
+                    valueRange = 0f..48f,
+                    backdrop = backdrop
                 )
-                PlaygroundSwitch(
-                    label = "Chromatic aberration",
+                IosGroupDivider()
+                IosToggleRow(
+                    title = "Chromatic Aberration",
                     checked = params.chromaticAberration,
                     onCheckedChange = { params.chromaticAberration = it },
-                    backdrop = backdrop,
+                    backdrop = backdrop
                 )
-                PlaygroundSwitch(
-                    label = "Depth effect",
+                IosGroupDivider()
+                IosToggleRow(
+                    title = "Depth Effect",
                     checked = params.depthEffect,
                     onCheckedChange = { params.depthEffect = it },
-                    backdrop = backdrop,
+                    backdrop = backdrop
                 )
             }
         }
 
         item {
-            PlaygroundSection(title = "Color & Luminance") {
-                PlaygroundSwitch(
-                    label = "Adaptive luminance",
+            IosSectionHeader("Color & Luminance")
+            IosGlassGroup(backdrop = backdrop, params = params, luminance = luminance) {
+                IosToggleRow(
+                    title = "Adaptive Luminance",
                     checked = params.adaptiveLuminance,
                     onCheckedChange = { params.adaptiveLuminance = it },
-                    backdrop = backdrop,
+                    backdrop = backdrop
                 )
                 if (!params.adaptiveLuminance) {
-                    PlaygroundSwitch(
-                        label = "Vibrancy",
+                    IosGroupDivider()
+                    IosToggleRow(
+                        title = "Vibrancy",
                         checked = params.useVibrancy,
                         onCheckedChange = { params.useVibrancy = it },
-                    backdrop = backdrop,
-                )
+                        backdrop = backdrop
+                    )
                     if (!params.useVibrancy) {
-                        PlaygroundSlider(
-                            label = "Brightness",
+                        IosGroupDivider()
+                        IosSliderRow(
+                            title = "Brightness",
                             value = params.brightness,
-                            valueRange = -0.3f..0.5f,
-                            valueLabel = { "%.2f".format(it) },
+                            valueLabel = "%.2f".format(params.brightness),
                             onValueChange = { params.brightness = it },
-                    backdrop = backdrop,
-                )
-                        PlaygroundSlider(
-                            label = "Saturation",
+                            valueRange = -0.3f..0.5f,
+                            backdrop = backdrop
+                        )
+                        IosGroupDivider()
+                        IosSliderRow(
+                            title = "Saturation",
                             value = params.saturation,
-                            valueRange = 0.5f..2.5f,
-                            valueLabel = { "%.2f".format(it) },
+                            valueLabel = "%.2f".format(params.saturation),
                             onValueChange = { params.saturation = it },
-                    backdrop = backdrop,
-                )
+                            valueRange = 0.5f..2.5f,
+                            backdrop = backdrop
+                        )
                     }
                 }
-                PlaygroundSlider(
-                    label = "Surface tint",
+                IosGroupDivider()
+                IosSliderRow(
+                    title = "Surface Tint",
                     value = params.surfaceTintAlpha,
-                    valueRange = 0f..0.6f,
-                    valueLabel = { "%.0f%%".format(it * 100) },
+                    valueLabel = "${(params.surfaceTintAlpha * 100).toInt()}%",
                     onValueChange = { params.surfaceTintAlpha = it },
-                    backdrop = backdrop,
+                    valueRange = 0f..0.6f,
+                    backdrop = backdrop
                 )
             }
         }
 
         item {
-            PlaygroundSection(title = "Specular Highlight") {
-                PlaygroundSwitch(
-                    label = "Enabled",
+            IosSectionHeader("Specular Highlight")
+            IosGlassGroup(backdrop = backdrop, params = params, luminance = luminance) {
+                IosToggleRow(
+                    title = "Enabled",
                     checked = params.specularEnabled,
                     onCheckedChange = { params.specularEnabled = it },
-                    backdrop = backdrop,
+                    backdrop = backdrop
                 )
                 if (params.specularEnabled) {
-                    PlaygroundEnumChips(
-                        label = "Style",
-                        backdrop = backdrop,
-                        params = params,
-                        luminance = luminance,
-                        options = SpecularStyleOption.entries,
-                        selected = params.specularStyle,
-                        onSelected = { params.specularStyle = it },
-                        labelFor = { it.name }
-                    )
-                    PlaygroundSlider(
-                        label = "Alpha",
+                    IosGroupDivider()
+                    Column(Modifier.padding(bottom = 4.dp)) {
+                        IosSegmentedControl(
+                            options = SpecularStyleOption.entries.map { it.name },
+                            selectedIndex = SpecularStyleOption.entries.indexOf(params.specularStyle),
+                            onSelected = { params.specularStyle = SpecularStyleOption.entries[it] },
+                            backdrop = backdrop,
+                            params = params,
+                            luminance = luminance
+                        )
+                    }
+                    IosGroupDivider()
+                    IosSliderRow(
+                        title = "Alpha",
                         value = params.specularAlpha,
-                        valueRange = 0f..1f,
-                        valueLabel = { "%.0f%%".format(it * 100) },
+                        valueLabel = "${(params.specularAlpha * 100).toInt()}%",
                         onValueChange = { params.specularAlpha = it },
-                    backdrop = backdrop,
-                )
+                        valueRange = 0f..1f,
+                        backdrop = backdrop
+                    )
                     if (params.specularStyle != SpecularStyleOption.Ambient) {
-                        PlaygroundSlider(
-                            label = "Width",
+                        IosGroupDivider()
+                        IosSliderRow(
+                            title = "Width",
                             value = params.specularWidthDp,
-                            valueRange = 0.25f..2f,
-                            valueLabel = { "%.2f dp".format(it) },
+                            valueLabel = "%.2f pt".format(params.specularWidthDp),
                             onValueChange = { params.specularWidthDp = it },
-                    backdrop = backdrop,
-                )
+                            valueRange = 0.25f..2f,
+                            backdrop = backdrop
+                        )
                     }
                 }
             }
         }
 
         item {
-            PlaygroundSection(title = "Depth") {
-                PlaygroundSwitch(
-                    label = "Drop shadow",
+            IosSectionHeader("Depth")
+            IosGlassGroup(backdrop = backdrop, params = params, luminance = luminance) {
+                IosToggleRow(
+                    title = "Drop Shadow",
                     checked = params.depthShadowEnabled,
                     onCheckedChange = { params.depthShadowEnabled = it },
-                    backdrop = backdrop,
+                    backdrop = backdrop
                 )
                 if (params.depthShadowEnabled) {
-                    PlaygroundSlider(
-                        label = "Shadow radius",
+                    IosGroupDivider()
+                    IosSliderRow(
+                        title = "Shadow Radius",
                         value = params.depthShadowRadiusDp,
-                        valueRange = 0f..32f,
-                        valueLabel = { "${it.toInt()} dp" },
+                        valueLabel = "${params.depthShadowRadiusDp.toInt()} pt",
                         onValueChange = { params.depthShadowRadiusDp = it },
-                    backdrop = backdrop,
-                )
-                    PlaygroundSlider(
-                        label = "Shadow alpha",
+                        valueRange = 0f..32f,
+                        backdrop = backdrop
+                    )
+                    IosGroupDivider()
+                    IosSliderRow(
+                        title = "Shadow Alpha",
                         value = params.depthShadowAlpha,
-                        valueRange = 0f..1f,
-                        valueLabel = { "%.0f%%".format(it * 100) },
+                        valueLabel = "${(params.depthShadowAlpha * 100).toInt()}%",
                         onValueChange = { params.depthShadowAlpha = it },
-                    backdrop = backdrop,
-                )
+                        valueRange = 0f..1f,
+                        backdrop = backdrop
+                    )
                 }
-                PlaygroundSwitch(
-                    label = "Depth inset",
+                IosGroupDivider()
+                IosToggleRow(
+                    title = "Depth Inset",
                     checked = params.depthInsetEnabled,
                     onCheckedChange = { params.depthInsetEnabled = it },
-                    backdrop = backdrop,
+                    backdrop = backdrop
                 )
                 if (params.depthInsetEnabled) {
-                    PlaygroundSlider(
-                        label = "Inset radius",
+                    IosGroupDivider()
+                    IosSliderRow(
+                        title = "Inset Radius",
                         value = params.depthInsetRadiusDp,
-                        valueRange = 0f..24f,
-                        valueLabel = { "${it.toInt()} dp" },
+                        valueLabel = "${params.depthInsetRadiusDp.toInt()} pt",
                         onValueChange = { params.depthInsetRadiusDp = it },
-                    backdrop = backdrop,
-                )
-                    PlaygroundSlider(
-                        label = "Inset alpha",
+                        valueRange = 0f..24f,
+                        backdrop = backdrop
+                    )
+                    IosGroupDivider()
+                    IosSliderRow(
+                        title = "Inset Alpha",
                         value = params.depthInsetAlpha,
-                        valueRange = 0f..1f,
-                        valueLabel = { "%.0f%%".format(it * 100) },
+                        valueLabel = "${(params.depthInsetAlpha * 100).toInt()}%",
                         onValueChange = { params.depthInsetAlpha = it },
-                    backdrop = backdrop,
-                )
+                        valueRange = 0f..1f,
+                        backdrop = backdrop
+                    )
                 }
             }
         }
 
         item {
-            PlaygroundSection(title = "Gradient Glass") {
-                PlaygroundSlider(
-                    label = "Bottom refraction weight",
+            IosSectionHeader("Gradient Glass")
+            IosGlassGroup(backdrop = backdrop, params = params, luminance = luminance) {
+                IosSliderRow(
+                    title = "Bottom Refraction Weight",
                     value = params.gradientBottomWeight,
-                    valueRange = 0f..1f,
-                    valueLabel = { "%.2f".format(it) },
+                    valueLabel = "%.2f".format(params.gradientBottomWeight),
                     onValueChange = { params.gradientBottomWeight = it },
-                    backdrop = backdrop,
-                )
-                PlaygroundSlider(
-                    label = "Blur fade end",
-                    value = params.gradientBlurFadeEnd,
                     valueRange = 0f..1f,
-                    valueLabel = { "%.2f".format(it) },
+                    backdrop = backdrop
+                )
+                IosGroupDivider()
+                IosSliderRow(
+                    title = "Blur Fade End",
+                    value = params.gradientBlurFadeEnd,
+                    valueLabel = "%.2f".format(params.gradientBlurFadeEnd),
                     onValueChange = { params.gradientBlurFadeEnd = it },
-                    backdrop = backdrop,
+                    valueRange = 0f..1f,
+                    backdrop = backdrop
                 )
             }
         }
 
         item {
-            PlaygroundGlassButton(
+            IosDestructiveButton(
+                text = "Reset All Settings",
                 onClick = { params.reset() },
                 backdrop = backdrop,
                 params = params,
-                luminance = luminance,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Reset to defaults")
-            }
-        }
-    }
-}
-
-@Composable
-private fun PlaygroundSection(
-    title: String,
-    content: @Composable () -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            content()
-        }
-    }
-}
-
-@Composable
-private fun PlaygroundSlider(
-    label: String,
-    value: Float,
-    valueRange: ClosedFloatingPointRange<Float>,
-    valueLabel: (Float) -> String,
-    onValueChange: (Float) -> Unit,
-    backdrop: PrismalBackdrop,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(label, style = MaterialTheme.typography.bodyMedium)
-            Text(
-                valueLabel(value),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                luminance = luminance
             )
+            IosSectionFooter("Restores the default glass preset used across the app.")
         }
-        PrismalGlassSlider(
-            value = { value },
-            onValueChange = onValueChange,
-            valueRange = valueRange,
-            visibilityThreshold = (valueRange.endInclusive - valueRange.start) * 0.005f,
-            backdrop = backdrop,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
 
-@Composable
-private fun PlaygroundSwitch(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    backdrop: PrismalBackdrop,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        PrismalGlassToggle(
-            selected = { checked },
-            onSelect = onCheckedChange,
-            backdrop = backdrop
-        )
-    }
-}
-
-@Composable
-private fun <T> PlaygroundEnumChips(
-    label: String,
-    backdrop: PrismalBackdrop,
-    params: GlassPlaygroundParams,
-    luminance: () -> Float,
-    options: List<T>,
-    selected: T,
-    onSelected: (T) -> Unit,
-    labelFor: (T) -> String
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            options.forEach { option ->
-                PlaygroundGlassButton(
-                    onClick = { onSelected(option) },
-                    backdrop = backdrop,
-                    params = params,
-                    luminance = luminance,
-                    modifier = Modifier.weight(1f),
-                    surfaceColor = if (option == selected) {
-                        Color.White.copy(alpha = 0.15f)
-                    } else {
-                        Color.Unspecified
-                    }
-                ) {
-                    Text(
-                        labelFor(option),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                }
-            }
-        }
+        item { Spacer(Modifier.height(8.dp)) }
     }
 }

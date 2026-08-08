@@ -11,14 +11,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,9 +43,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -112,34 +109,37 @@ fun CatalogPlaygroundScreen() {
                     onTabSelected = { selectedTab = it },
                     backdrop = backdropLayer,
                     tabsCount = 4,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                 ) {
-                    PrismalGlassBottomTab(onClick = { selectedTab = PlaygroundTab.Home.ordinal }) {
-                        Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(22.dp))
-                        Text("Home", style = MaterialTheme.typography.labelSmall)
-                    }
-                    PrismalGlassBottomTab(onClick = { selectedTab = PlaygroundTab.Search.ordinal }) {
-                        Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(22.dp))
-                        Text("Search", style = MaterialTheme.typography.labelSmall)
-                    }
-                    PrismalGlassBottomTab(onClick = { selectedTab = PlaygroundTab.Profile.ordinal }) {
-                        Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(22.dp))
-                        Text("Profile", style = MaterialTheme.typography.labelSmall)
-                    }
-                    PrismalGlassBottomTab(onClick = { selectedTab = PlaygroundTab.Settings.ordinal }) {
-                        Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(22.dp))
-                        Text("Settings", style = MaterialTheme.typography.labelSmall)
-                    }
+                    IosTabItem(
+                        selected = selectedTab == PlaygroundTab.Home.ordinal,
+                        icon = Icons.Default.Home,
+                        label = "Home",
+                        onClick = { selectedTab = PlaygroundTab.Home.ordinal }
+                    )
+                    IosTabItem(
+                        selected = selectedTab == PlaygroundTab.Search.ordinal,
+                        icon = Icons.Default.Search,
+                        label = "Search",
+                        onClick = { selectedTab = PlaygroundTab.Search.ordinal }
+                    )
+                    IosTabItem(
+                        selected = selectedTab == PlaygroundTab.Profile.ordinal,
+                        icon = Icons.Default.Person,
+                        label = "Profile",
+                        onClick = { selectedTab = PlaygroundTab.Profile.ordinal }
+                    )
+                    IosTabItem(
+                        selected = selectedTab == PlaygroundTab.Settings.ordinal,
+                        icon = Icons.Default.Settings,
+                        label = "Settings",
+                        onClick = { selectedTab = PlaygroundTab.Settings.ordinal }
+                    )
                 }
             },
-            modifier = Modifier.padding(bottom = 20.dp)
+            modifier = Modifier.padding(bottom = 12.dp)
         ) { innerPadding ->
-            val contentPadding = PaddingValues(
-                start = 20.dp,
-                end = 20.dp,
-                top = 24.dp,
-                bottom = 24.dp
-            )
+            val contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
 
             when (PlaygroundTab.entries[selectedTab]) {
                 PlaygroundTab.Home -> CatalogTabContent(
@@ -180,25 +180,38 @@ fun CatalogPlaygroundScreen() {
                     backdrop = backdropLayer,
                     backdropLayer = backdropLayer,
                     params = glassParams,
+                    onPickWallpaper = {
+                        pickBackgroundImage.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
                     modifier = Modifier.padding(innerPadding),
                     contentPadding = contentPadding
                 )
             }
         }
+    }
+}
 
-        BackgroundImagePickerButton(
-            backdrop = backdropLayer,
-            glassParams = glassParams,
-            luminance = luminance,
-            onClick = {
-                pickBackgroundImage.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                )
-            },
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .statusBarsPadding()
-                .padding(top = 12.dp, end = 20.dp)
+@Composable
+private fun RowScope.IosTabItem(
+    selected: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    PrismalGlassBottomTab(onClick = onClick) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            modifier = Modifier.size(24.dp),
+            tint = if (selected) IosTheme.colors.systemBlue else IosTheme.colors.secondaryLabel
+        )
+        Text(
+            text = label,
+            style = IosTheme.tabLabel,
+            color = if (selected) IosTheme.colors.systemBlue else IosTheme.colors.secondaryLabel,
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -219,74 +232,71 @@ private fun CatalogTabContent(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = contentPadding,
-        verticalArrangement = Arrangement.spacedBy(28.dp)
-    ) {
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = "Prismal Catalog",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Interactive glass components sampled from the backdrop below.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
-        }
+    IosGroupedScreen(modifier = modifier, contentPadding = contentPadding) {
+        item { IosLargeTitle(title = "Browse", subtitle = "Prismal components") }
 
         item {
-            CatalogSection(title = "Buttons") {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            IosSectionHeader("Buttons")
+            IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(IosLayout.groupInnerPadding),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                     PlaygroundGlassButton(
                         onClick = {},
                         backdrop = backdrop,
                         params = glassParams,
-                        luminance = luminance
+                        luminance = luminance,
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Text("Default")
+                        Text("Default", style = IosTheme.body, color = IosTheme.colors.label)
                     }
                     PlaygroundGlassButton(
                         onClick = {},
                         backdrop = backdrop,
                         params = glassParams,
                         luminance = luminance,
+                        modifier = Modifier.weight(1f),
                         tint = Color(0xFF5856D6)
                     ) {
-                        Text("Tinted")
+                        Text("Tinted", style = IosTheme.body, color = IosTheme.colors.label)
                     }
                 }
             }
         }
 
         item {
-            CatalogSection(title = "Toggle") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Notifications", style = MaterialTheme.typography.bodyLarge)
-                    PrismalGlassToggle(
-                        selected = { toggleOn },
-                        onSelect = onToggleChange,
-                        backdrop = backdrop
-                    )
-                }
+            IosSectionHeader("Notifications")
+            IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
+                IosToggleRow(
+                    title = "Allow Notifications",
+                    subtitle = "Mirror iOS Settings toggle placement",
+                    checked = toggleOn,
+                    onCheckedChange = onToggleChange,
+                    backdrop = backdrop
+                )
             }
+            IosSectionFooter("Glass toggles keep their built-in styling in this demo.")
         }
 
         item {
-            CatalogSection(title = "Slider") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Value: ${"%.0f".format(sliderValue * 100)}%",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+            IosSectionHeader("Intensity")
+            IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
+                Column(Modifier.padding(horizontal = IosLayout.groupInnerPadding, vertical = 14.dp)) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Level", style = IosTheme.body, color = IosTheme.colors.label)
+                        Text(
+                            "${"%.0f".format(sliderValue * 100)}%",
+                            style = IosTheme.body,
+                            color = IosTheme.colors.secondaryLabel
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
                     PrismalGlassSlider(
                         value = { sliderValue },
                         onValueChange = onSliderValueChange,
@@ -299,33 +309,9 @@ private fun CatalogTabContent(
         }
 
         item {
-            CatalogSection(title = "Progress") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        PlaygroundGlassButton(
-                            onClick = { onIndeterminateChange(!indeterminate) },
-                            backdrop = backdrop,
-                            params = glassParams,
-                            luminance = luminance,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(if (indeterminate) "Determinate" else "Indeterminate")
-                        }
-                        if (!indeterminate) {
-                            PlaygroundGlassButton(
-                                onClick = onAdvanceProgress,
-                                backdrop = backdrop,
-                                params = glassParams,
-                                luminance = luminance,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("Advance")
-                            }
-                        }
-                    }
+            IosSectionHeader("Download")
+            IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
+                Column(Modifier.padding(IosLayout.groupInnerPadding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     PlaygroundGlassProgressBar(
                         progress = { progress },
                         backdrop = backdrop,
@@ -333,96 +319,71 @@ private fun CatalogTabContent(
                         luminance = luminance,
                         indeterminate = indeterminate
                     )
+                    IosGroupDivider(showLeadingInset = false)
+                    IosListRow(
+                        title = if (indeterminate) "Use Determinate Progress" else "Use Indeterminate Progress",
+                        titleColor = IosTheme.colors.systemBlue,
+                        onClick = { onIndeterminateChange(!indeterminate) }
+                    )
+                    if (!indeterminate) {
+                        IosGroupDivider(showLeadingInset = false)
+                        IosListRow(
+                            title = "Advance",
+                            titleColor = IosTheme.colors.systemBlue,
+                            onClick = onAdvanceProgress
+                        )
+                    }
                 }
             }
         }
 
         item {
-            CatalogSection(title = "Gradient Glass Panel") {
-                PrismalGradientGlassPanel(
-                    backdrop = backdrop,
-                    height = 160.dp,
-                    adaptiveLuminance = glassParams.adaptiveLuminance,
-                    luminance = luminance,
-                    blurRadiusDp = glassParams.blurRadiusDp.dp,
-                    refractionHeightDp = glassParams.refractionHeightDp.dp,
-                    refractionAmountDp = glassParams.refractionAmountDp.dp,
-                    refractionBottomWeight = glassParams.gradientBottomWeight,
-                    blurFadeEnd = glassParams.gradientBlurFadeEnd,
-                    chromaticAberration = glassParams.chromaticAberration
-                )
-            }
-        }
-
-        item {
-            CatalogSection(title = "Glass Surface") {
-                PlaygroundGlassSurface(
-                    backdrop = backdrop,
-                    params = glassParams,
-                    luminance = luminance,
-                    shape = { PrismalRoundedRectangle(24.dp) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
-                    onClick = {},
-                    content = {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(20.dp),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "Tap me",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = "General-purpose glass container with press ripple.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                            )
+            IosSectionHeader("Showcase")
+            IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
+                Column(Modifier.padding(IosLayout.groupInnerPadding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    PrismalGradientGlassPanel(
+                        backdrop = backdrop,
+                        height = 140.dp,
+                        adaptiveLuminance = glassParams.adaptiveLuminance,
+                        luminance = luminance,
+                        blurRadiusDp = glassParams.blurRadiusDp.dp,
+                        refractionHeightDp = glassParams.refractionHeightDp.dp,
+                        refractionAmountDp = glassParams.refractionAmountDp.dp,
+                        refractionBottomWeight = glassParams.gradientBottomWeight,
+                        blurFadeEnd = glassParams.gradientBlurFadeEnd,
+                        chromaticAberration = glassParams.chromaticAberration
+                    )
+                    IosGroupDivider(showLeadingInset = false)
+                    PlaygroundGlassSurface(
+                        backdrop = backdrop,
+                        params = glassParams,
+                        luminance = luminance,
+                        shape = { PrismalRoundedRectangle(IosLayout.groupCorner) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(88.dp),
+                        onClick = {},
+                        content = {
+                            Column(
+                                Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = IosLayout.groupInnerPadding),
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text("Glass Surface", style = IosTheme.headline, color = IosTheme.colors.label)
+                                Text(
+                                    "Tap for press ripple",
+                                    style = IosTheme.footnote,
+                                    color = IosTheme.colors.secondaryLabel
+                                )
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
-        }
-
-        item {
-            Spacer(Modifier.height(8.dp))
+            IosSectionFooter("Component appearance follows values from the Settings tab.")
         }
     }
-}
-
-@Composable
-private fun BackgroundImagePickerButton(
-    backdrop: PrismalGlassLayer,
-    glassParams: GlassPlaygroundParams,
-    luminance: () -> Float,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    PlaygroundGlassSurface(
-        backdrop = backdrop,
-        params = glassParams,
-        luminance = luminance,
-        shape = { PrismalCapsule() },
-        modifier = modifier.size(60.dp),
-        onClick = onClick,
-        content = {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_img_picker),
-                    contentDescription = stringResource(R.string.pick_background_image),
-                    modifier = Modifier.size(30.dp),
-                    tint = Color.Black
-                )
-            }
-        }
-    )
 }
 
 @Composable
@@ -450,71 +411,66 @@ private fun PlaygroundBackdrop(
 @Composable
 private fun DefaultPlaygroundBackdrop(modifier: Modifier = Modifier) {
     val isDark = isSystemInDarkTheme()
-    val baseColors = if (isDark) {
-        listOf(Color(0xFF0D1117), Color(0xFF161B22), Color(0xFF21262D))
+    val base = if (isDark) {
+        listOf(Color(0xFF0B0B0F), Color(0xFF15151A), Color(0xFF1C1C22))
     } else {
-        listOf(Color(0xFFE8F4FD), Color(0xFFFCE4EC), Color(0xFFE8EAF6))
+        listOf(Color(0xFFDCE8FF), Color(0xFFE8DDF8), Color(0xFFF5E6EF))
     }
-    val accentColors = listOf(
-        Color(0xFFFF6B6B),
-        Color(0xFF4ECDC4),
-        Color(0xFFFFE66D),
-        Color(0xFF5856D6),
-        Color(0xFF34C759)
-    )
 
     Box(
         modifier.background(
             Brush.linearGradient(
-                colors = baseColors,
-                start = Offset.Zero,
-                end = Offset(800f, 1400f)
+                colors = base,
+                start = Offset(0f, 0f),
+                end = Offset(900f, 1600f)
             )
         )
     ) {
-        accentColors.forEachIndexed { index, color ->
-            val xOffset = (index * 73) % 280
-            val yOffset = 120 + index * 180
-            Box(
-                Modifier
-                    .padding(start = xOffset.dp, top = yOffset.dp)
-                    .size((120 + index * 20).dp)
-                    .clip(if (index % 2 == 0) CircleShape else PrismalCapsule())
-                    .background(color.copy(alpha = 0.55f))
-            )
-        }
-
+        Box(
+            Modifier
+                .align(Alignment.TopStart)
+                .offset(x = (-40).dp, y = 80.dp)
+                .size(280.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF64D2FF).copy(alpha = if (isDark) 0.22f else 0.45f))
+        )
+        Box(
+            Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 20.dp, y = 180.dp)
+                .size(240.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFBF5AF2).copy(alpha = if (isDark) 0.18f else 0.38f))
+        )
+        Box(
+            Modifier
+                .align(Alignment.Center)
+                .size(320.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF5E5CE6).copy(alpha = if (isDark) 0.12f else 0.28f))
+        )
+        Box(
+            Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 24.dp, bottom = 120.dp)
+                .size(200.dp)
+                .clip(PrismalCapsule())
+                .background(Color(0xFF32D74B).copy(alpha = if (isDark) 0.14f else 0.32f))
+        )
         Box(
             Modifier
                 .align(Alignment.BottomEnd)
-                .padding(32.dp)
-                .size(200.dp)
-                .clip(PrismalRoundedRectangle(48.dp))
+                .padding(end = 16.dp, bottom = 40.dp)
+                .size(260.dp)
+                .clip(PrismalRoundedRectangle(80.dp))
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
-                            Color(0xFF0088FF).copy(alpha = 0.6f),
-                            Color(0xFF5856D6).copy(alpha = 0.3f),
+                            Color(0xFF0A84FF).copy(alpha = if (isDark) 0.25f else 0.42f),
                             Color.Transparent
                         )
                     )
                 )
         )
-    }
-}
-
-@Composable
-private fun CatalogSection(
-    title: String,
-    content: @Composable () -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
-        )
-        content()
     }
 }

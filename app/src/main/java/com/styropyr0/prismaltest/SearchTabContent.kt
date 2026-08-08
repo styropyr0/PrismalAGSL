@@ -5,20 +5,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,18 +25,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.shapes.PrismalCapsule
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 
 private val searchSuggestions = listOf(
-    "Glass buttons",
-    "Gradient panels",
-    "Chromatic aberration",
-    "Adaptive luminance",
-    "Specular highlights",
-    "Bottom tabs"
+    "Glass Buttons",
+    "Gradient Panels",
+    "Chromatic Aberration",
+    "Adaptive Luminance",
+    "Specular Highlights",
+    "Bottom Tabs"
 )
 
 @Composable
@@ -60,71 +56,71 @@ fun SearchTabContent(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(contentPadding),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        Text(
-            text = "Search",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
+    IosGroupedScreen(modifier = modifier, contentPadding = contentPadding) {
+        item {
+            IosLargeTitle(title = "Search")
+        }
 
-        IosGlassSearchBar(
-            backdrop = backdrop,
-            glassParams = glassParams,
-            luminance = luminance,
-            query = query,
-            onQueryChange = { query = it },
-            onClear = { query = "" }
-        )
+        item {
+            IosGlassSearchField(
+                backdrop = backdrop,
+                glassParams = glassParams,
+                luminance = luminance,
+                query = query,
+                onQueryChange = { query = it },
+                onClear = { query = "" }
+            )
+        }
 
-        if (query.isNotBlank()) {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (filteredResults.isEmpty()) {
-                    item {
-                        Text(
-                            text = "No results for \"$query\"",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                } else {
-                    items(filteredResults) { result ->
-                        PlaygroundGlassSurface(
-                            backdrop = backdrop,
-                            params = glassParams,
-                            luminance = luminance,
-                            shape = { PrismalCapsule() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(44.dp),
-                            content = {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp),
-                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
-                                    )
-                                    Text(
-                                        text = result,
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                }
-                            }
+        if (query.isBlank()) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 48.dp, start = 32.dp, end = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        modifier = Modifier.size(44.dp),
+                        tint = IosTheme.colors.tertiaryLabel
+                    )
+                    Text(
+                        text = "Search Prismal",
+                        style = IosTheme.headline,
+                        color = IosTheme.colors.secondaryLabel
+                    )
+                    Text(
+                        text = "Find components and effects",
+                        style = IosTheme.subheadline,
+                        color = IosTheme.colors.tertiaryLabel
+                    )
+                }
+            }
+        } else if (filteredResults.isEmpty()) {
+            item {
+                Text(
+                    text = "No Results for \"$query\"",
+                    style = IosTheme.headline,
+                    color = IosTheme.colors.secondaryLabel,
+                    modifier = Modifier.padding(
+                        start = IosLayout.screenHorizontal,
+                        top = 24.dp
+                    )
+                )
+            }
+        } else {
+            item {
+                IosSectionHeader("Results")
+                IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
+                    filteredResults.forEachIndexed { index, result ->
+                        if (index > 0) IosGroupDivider()
+                        IosListRow(
+                            title = result,
+                            showChevron = true,
+                            onClick = {}
                         )
                     }
                 }
@@ -134,7 +130,7 @@ fun SearchTabContent(
 }
 
 @Composable
-private fun IosGlassSearchBar(
+private fun IosGlassSearchField(
     backdrop: PrismalGlassLayer,
     glassParams: GlassPlaygroundParams,
     luminance: () -> Float,
@@ -142,12 +138,11 @@ private fun IosGlassSearchBar(
     onQueryChange: (String) -> Unit,
     onClear: () -> Unit
 ) {
-    val placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-    val textColor = MaterialTheme.colorScheme.onSurface
-
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = IosLayout.screenHorizontal),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         PlaygroundGlassSurface(
@@ -162,46 +157,43 @@ private fun IosGlassSearchBar(
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 14.dp),
+                        .padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = placeholderColor
+                        modifier = Modifier.size(18.dp),
+                        tint = IosTheme.colors.secondaryLabel
                     )
                     BasicTextField(
                         value = query,
                         onValueChange = onQueryChange,
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        textStyle = IosTheme.body.copy(color = IosTheme.colors.label),
+                        cursorBrush = SolidColor(IosTheme.colors.systemBlue),
                         decorationBox = { innerTextField ->
                             if (query.isEmpty()) {
                                 Text(
                                     text = "Search",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = placeholderColor
+                                    style = IosTheme.body,
+                                    color = IosTheme.colors.secondaryLabel
                                 )
                             }
                             innerTextField()
                         }
                     )
                     if (query.isNotEmpty()) {
-                        IconButton(
-                            onClick = onClear,
-                            modifier = Modifier.size(28.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Clear search",
-                                modifier = Modifier.size(18.dp),
-                                tint = placeholderColor
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Clear",
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clickable(onClick = onClear),
+                            tint = IosTheme.colors.secondaryLabel
+                        )
                     }
                 }
             }
@@ -210,12 +202,12 @@ private fun IosGlassSearchBar(
         if (query.isNotEmpty()) {
             Text(
                 text = "Cancel",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .padding(end = 4.dp)
-                    .clickable(onClick = onClear)
+                style = IosTheme.body,
+                color = IosTheme.colors.systemBlue,
+                modifier = Modifier.clickable(onClick = onClear)
             )
         }
     }
+
+    Spacer(Modifier.height(4.dp))
 }
