@@ -1,4 +1,4 @@
-# Prismal
+# Prismal - Liquid Glass for Android (Jetpack)
 
 **Liquid glass for Jetpack Compose** — backdrop sampling, blur, edge refraction, specular highlights, and interactive glass controls with automatic degradation on older Android versions.
 
