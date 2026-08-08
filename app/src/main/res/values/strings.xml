@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Prismal Test</string>
+    <string name="catalog_playground_title">Prismal Catalog</string>
+    <string name="pick_background_image">Pick background image</string>
 </resources>

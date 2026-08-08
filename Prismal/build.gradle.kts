@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 android {
     namespace = "com.styropyr0.prismal"
     compileSdk {
@@ -32,4 +34,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+        optIn.add("kotlin.time.ExperimentalTime")
+    }
 }

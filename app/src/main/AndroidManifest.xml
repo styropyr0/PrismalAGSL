@@ -12,8 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PrismalTest">
         <activity
-            android:name=".MainActivity"
+            android:name=".CatalogPlaygroundActivity"
             android:exported="true"
+            android:label="@string/catalog_playground_title"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,6 +22,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>
