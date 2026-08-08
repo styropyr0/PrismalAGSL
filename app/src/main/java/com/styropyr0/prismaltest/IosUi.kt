@@ -88,7 +88,7 @@ fun IosSectionHeader(
         style = IosTheme.sectionHeader,
         color = IosTheme.colors.secondaryLabel,
         modifier = modifier.padding(
-            start = IosLayout.screenHorizontal + 16.dp,
+            start = IosLayout.screenHorizontal,
             end = IosLayout.screenHorizontal,
             bottom = 6.dp
         )
@@ -105,7 +105,7 @@ fun IosSectionFooter(
         style = IosTheme.footnote,
         color = IosTheme.colors.secondaryLabel,
         modifier = modifier.padding(
-            start = IosLayout.screenHorizontal + 16.dp,
+            start = IosLayout.screenHorizontal,
             end = IosLayout.screenHorizontal,
             top = 8.dp
         )
