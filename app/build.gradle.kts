@@ -1,9 +1,9 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
 }
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 android {
     namespace = "com.styropyr0.prismaltest"
@@ -20,14 +20,17 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
     buildTypes {
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+
             optimization {
                 enable = false
             }
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -35,6 +38,12 @@ android {
     buildFeatures {
         compose = true
     }
+}
+
+composeCompiler {
+    // AGP 9 resolves compose-group-mapping at Kotlin 2.2.x, but the artifact is only
+    // published for Kotlin 2.4+. Disabling is behavior-neutral (Compose stack trace only).
+    includeComposeMappingFile.set(false)
 }
 
 dependencies {
