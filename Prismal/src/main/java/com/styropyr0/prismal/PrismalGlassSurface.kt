@@ -56,7 +56,7 @@ fun PrismalGlassSurface(
     refractionHeightPx: Float = 16f,
     refractionAmountPx: Float = 32f,
     depthEffect: Boolean = false,
-    chromaticAberration: Boolean = false,
+    chromaticAberration: Float = 0f,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
     val density = LocalDensity.current

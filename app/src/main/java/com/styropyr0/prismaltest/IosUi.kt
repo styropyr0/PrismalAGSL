@@ -133,14 +133,13 @@ fun IosGlassGroup(
     params: GlassPlaygroundParams,
     luminance: () -> Float,
     modifier: Modifier = Modifier,
-    cornerRadius: Dp = IosLayout.groupCorner,
     content: @Composable ColumnScope.() -> Unit
 ) {
     PlaygroundGlassSurface(
         backdrop = backdrop,
         params = params,
         luminance = luminance,
-        shape = { PrismalRoundedRectangle(cornerRadius) },
+        shape = { PrismalRoundedRectangle(params.cornerRadiusDp.dp) },
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = IosLayout.screenHorizontal),
@@ -306,7 +305,7 @@ fun IosDestructiveButton(
         backdrop = backdrop,
         params = params,
         luminance = luminance,
-        shape = { PrismalRoundedRectangle(IosLayout.groupCorner) },
+        shape = { PrismalRoundedRectangle(params.cornerRadiusDp.dp) },
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = IosLayout.screenHorizontal),

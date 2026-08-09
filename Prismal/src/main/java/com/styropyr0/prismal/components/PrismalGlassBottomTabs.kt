@@ -300,7 +300,7 @@ fun PrismalGlassBottomTabs(
                         prismalLens(
                             refractionHeight = with(density) { 10.dp.toPx() } * progress,
                             refractionAmount = with(density) { 14.dp.toPx() } * progress,
-                            chromaticAberration = true
+                            chromaticAberration = 1f
                         )
                     },
                     specular = {

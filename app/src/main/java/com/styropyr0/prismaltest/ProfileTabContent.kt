@@ -139,7 +139,6 @@ fun ProfileTabContent(
                                 offset = clampOffset(offset + dragAmount)
                             }
                         },
-                    cornerRadius = 22.dp,
                     content = {
                         Column(
                             modifier = Modifier

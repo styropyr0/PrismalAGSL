@@ -35,7 +35,7 @@ fun PrismalGlassEffectProvider.applyPrismalGlassEffects(
     brightness: Float = 0f,
     saturation: Float = 1.5f,
     depthEffect: Boolean = false,
-    chromaticAberration: Boolean = false,
+    chromaticAberration: Float = 0f,
     useVibrancy: Boolean = true
 ) {
     if (adaptiveLuminance) {

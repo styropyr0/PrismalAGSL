@@ -29,7 +29,7 @@ fun PrismalGlassEffectProvider.prismalGradientGlass(
     blurFadeEnd: Float = 0.75f,
     tint: Color = Color.Transparent,
     tintIntensity: Float = 0f,
-    chromaticAberration: Boolean = false
+    chromaticAberration: Float = 0f
 ) {
     var effectiveBlur = blurRadiusPx
     if (adaptiveLuminance) {

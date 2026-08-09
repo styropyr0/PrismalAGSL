@@ -23,13 +23,13 @@ import com.styropyr0.prismal.isAGSLShaderSupported
  * @param refractionHeight Height of the curved refraction zone at the shape edge.
  * @param refractionAmount Horizontal displacement strength at the edge.
  * @param depthEffect When true, refraction follows surface normals for a deeper lens look.
- * @param chromaticAberration When true, splits RGB channels for dispersion.
+ * @param chromaticAberration Dispersion strength in `[0, 1]`; splits RGB channels when above zero.
  */
 fun PrismalGlassEffectProvider.prismalLens(
     @FloatRange(from = 0.0) refractionHeight: Float,
     @FloatRange(from = 0.0) refractionAmount: Float,
     depthEffect: Boolean = false,
-    chromaticAberration: Boolean = false
+    @FloatRange(from = 0.0, to = 1.0) chromaticAberration: Float = 0f
 ) {
     if (!isAGSLShaderSupported()) return
     if (refractionHeight <= 0f || refractionAmount <= 0f) return
@@ -42,8 +42,9 @@ fun PrismalGlassEffectProvider.prismalLens(
     val cornerRadii = cornerRadii
     val effect =
         if (cornerRadii != null) {
+            val useDispersion = chromaticAberration > 0f
             val shader =
-                if (!chromaticAberration) {
+                if (!useDispersion) {
                     obtainAGSLShader(
                         "Refraction",
                         PrismalRectRefractionShader
@@ -61,8 +62,8 @@ fun PrismalGlassEffectProvider.prismalLens(
                 setFloatUniform("refractionHeight", refractionHeight)
                 setFloatUniform("refractionAmount", -refractionAmount)
                 setFloatUniform("depthEffect", if (depthEffect) 1f else 0f)
-                if (chromaticAberration) {
-                    setFloatUniform("chromaticAberration", 1f)
+                if (useDispersion) {
+                    setFloatUniform("chromaticAberration", chromaticAberration)
                 }
             }
             PrismalShaderEffect(shader, "content")

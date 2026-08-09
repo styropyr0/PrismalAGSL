@@ -36,7 +36,7 @@ fun PrismalGradientGlassPanel(
     refractionBottomWeight: Float = 1f,
     blurFadeStart: Float = 0f,
     blurFadeEnd: Float = 0.8f,
-    chromaticAberration: Boolean = false,
+    chromaticAberration: Float = 0f,
     tint: Color = Color.Unspecified
 ) {
     val density = LocalDensity.current

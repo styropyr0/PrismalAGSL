@@ -1,5 +1,6 @@
 package com.styropyr0.prismal
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.ChecksSdkIntAtLeast
 
@@ -41,6 +42,8 @@ object PrismalGlass {
         }
 
     /** Glass rendering is available on API [MIN_SDK]+ with automatic tier degradation. */
+    @ChecksSdkIntAtLeast(api = MIN_SDK)
+    @SuppressLint("ObsoleteSdkInt")
     fun isSupported(): Boolean = Build.VERSION.SDK_INT >= MIN_SDK
 
     /** Backdrop blur via RenderEffect (API 31+). */
