@@ -57,6 +57,7 @@ import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 import com.styropyr0.prismal.sources.prismalGlassLayer
 import com.styropyr0.prismal.sources.rememberPrismalGlassLayer
+import com.styropyr0.prismal.sources.rememberPrismalMergedSource
 
 private enum class PlaygroundTab {
     Home,
@@ -68,6 +69,8 @@ private enum class PlaygroundTab {
 @Composable
 fun CatalogPlaygroundScreen() {
     val backdropLayer = rememberPrismalGlassLayer()
+    val screenLayer = rememberPrismalGlassLayer()
+    val modalBackdrop = rememberPrismalMergedSource(backdropLayer, screenLayer)
     val glassParams = rememberGlassPlaygroundParams()
     var selectedTab by remember { mutableIntStateOf(PlaygroundTab.Home.ordinal) }
     var toggleOn by remember { mutableStateOf(true) }
@@ -75,6 +78,9 @@ fun CatalogPlaygroundScreen() {
     var progress by remember { mutableFloatStateOf(0.65f) }
     var indeterminate by remember { mutableStateOf(false) }
     var backgroundImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showAlert by remember { mutableStateOf(false) }
+    var showDestructiveAlert by remember { mutableStateOf(false) }
 
     val isLightTheme = !isSystemInDarkTheme()
     val adaptiveLuminance = rememberPrismalAdaptiveLuminance(
@@ -98,96 +104,142 @@ fun CatalogPlaygroundScreen() {
             backgroundImageUri = backgroundImageUri
         )
 
-        Scaffold(
-            containerColor = Color.Transparent,
-            bottomBar = {
-                PrismalGlassBottomTabs(
-                    selectedTabIndex = { selectedTab },
-                    onTabSelected = { selectedTab = it },
-                    backdrop = backdropLayer,
-                    tabsCount = 4,
-                    dropletContentTint = Color.Black,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
-                ) {
-                    IosTabItem(
-                        index = PlaygroundTab.Home.ordinal,
-                        icon = Icons.Rounded.Home,
-                        label = "Home",
-                        onClick = { selectedTab = PlaygroundTab.Home.ordinal }
+        Box(
+            Modifier
+                .fillMaxSize()
+                .prismalGlassLayer(screenLayer)
+        ) {
+            Scaffold(
+                containerColor = Color.Transparent,
+                bottomBar = {
+                    PrismalGlassBottomTabs(
+                        selectedTabIndex = { selectedTab },
+                        onTabSelected = { selectedTab = it },
+                        backdrop = backdropLayer,
+                        tabsCount = 4,
+                        dropletContentTint = Color.Black,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                    ) {
+                        IosTabItem(
+                            index = PlaygroundTab.Home.ordinal,
+                            icon = Icons.Rounded.Home,
+                            label = "Home",
+                            onClick = { selectedTab = PlaygroundTab.Home.ordinal }
+                        )
+                        IosTabItem(
+                            index = PlaygroundTab.Search.ordinal,
+                            icon = Icons.Rounded.Search,
+                            label = "Search",
+                            onClick = { selectedTab = PlaygroundTab.Search.ordinal }
+                        )
+                        IosTabItem(
+                            index = PlaygroundTab.Profile.ordinal,
+                            icon = Icons.Rounded.Person,
+                            label = "Profile",
+                            onClick = { selectedTab = PlaygroundTab.Profile.ordinal }
+                        )
+                        IosTabItem(
+                            index = PlaygroundTab.Settings.ordinal,
+                            icon = Icons.Rounded.Settings,
+                            label = "Settings",
+                            onClick = { selectedTab = PlaygroundTab.Settings.ordinal }
+                        )
+                    }
+                },
+                modifier = Modifier.padding(bottom = 12.dp)
+            ) { innerPadding ->
+                val contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
+
+                when (PlaygroundTab.entries[selectedTab]) {
+                    PlaygroundTab.Home -> CatalogTabContent(
+                        backdrop = backdropLayer,
+                        glassParams = glassParams,
+                        luminance = luminance,
+                        toggleOn = toggleOn,
+                        onToggleChange = { toggleOn = it },
+                        sliderValue = sliderValue,
+                        onSliderValueChange = { sliderValue = it },
+                        progress = progress,
+                        indeterminate = indeterminate,
+                        onIndeterminateChange = { indeterminate = it },
+                        onAdvanceProgress = {
+                            progress = ((progress + 0.15f) % 1.05f).coerceAtMost(1f)
+                        },
+                        onShowBottomSheet = { showBottomSheet = true },
+                        onShowAlert = { showAlert = true },
+                        onShowDestructiveAlert = { showDestructiveAlert = true },
+                        modifier = Modifier.padding(innerPadding),
+                        contentPadding = contentPadding
                     )
-                    IosTabItem(
-                        index = PlaygroundTab.Search.ordinal,
-                        icon = Icons.Rounded.Search,
-                        label = "Search",
-                        onClick = { selectedTab = PlaygroundTab.Search.ordinal }
+
+                    PlaygroundTab.Search -> SearchTabContent(
+                        backdrop = backdropLayer,
+                        glassParams = glassParams,
+                        luminance = luminance,
+                        modifier = Modifier.padding(innerPadding),
+                        contentPadding = contentPadding
                     )
-                    IosTabItem(
-                        index = PlaygroundTab.Profile.ordinal,
-                        icon = Icons.Rounded.Person,
-                        label = "Profile",
-                        onClick = { selectedTab = PlaygroundTab.Profile.ordinal }
+
+                    PlaygroundTab.Profile -> ProfileTabContent(
+                        backdrop = backdropLayer,
+                        glassParams = glassParams,
+                        luminance = luminance,
+                        modifier = Modifier.padding(innerPadding),
+                        contentPadding = contentPadding
                     )
-                    IosTabItem(
-                        index = PlaygroundTab.Settings.ordinal,
-                        icon = Icons.Rounded.Settings,
-                        label = "Settings",
-                        onClick = { selectedTab = PlaygroundTab.Settings.ordinal }
+
+                    PlaygroundTab.Settings -> GlassSettingsPlayground(
+                        backdrop = backdropLayer,
+                        backdropLayer = backdropLayer,
+                        params = glassParams,
+                        onPickWallpaper = {
+                            pickBackgroundImage.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                        modifier = Modifier.padding(innerPadding),
+                        contentPadding = contentPadding
                     )
                 }
-            },
-            modifier = Modifier.padding(bottom = 12.dp)
-        ) { innerPadding ->
-            val contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
-
-            when (PlaygroundTab.entries[selectedTab]) {
-                PlaygroundTab.Home -> CatalogTabContent(
-                    backdrop = backdropLayer,
-                    glassParams = glassParams,
-                    luminance = luminance,
-                    toggleOn = toggleOn,
-                    onToggleChange = { toggleOn = it },
-                    sliderValue = sliderValue,
-                    onSliderValueChange = { sliderValue = it },
-                    progress = progress,
-                    indeterminate = indeterminate,
-                    onIndeterminateChange = { indeterminate = it },
-                    onAdvanceProgress = {
-                        progress = ((progress + 0.15f) % 1.05f).coerceAtMost(1f)
-                    },
-                    modifier = Modifier.padding(innerPadding),
-                    contentPadding = contentPadding
-                )
-
-                PlaygroundTab.Search -> SearchTabContent(
-                    backdrop = backdropLayer,
-                    glassParams = glassParams,
-                    luminance = luminance,
-                    modifier = Modifier.padding(innerPadding),
-                    contentPadding = contentPadding
-                )
-
-                PlaygroundTab.Profile -> ProfileTabContent(
-                    backdrop = backdropLayer,
-                    glassParams = glassParams,
-                    luminance = luminance,
-                    modifier = Modifier.padding(innerPadding),
-                    contentPadding = contentPadding
-                )
-
-                PlaygroundTab.Settings -> GlassSettingsPlayground(
-                    backdrop = backdropLayer,
-                    backdropLayer = backdropLayer,
-                    params = glassParams,
-                    onPickWallpaper = {
-                        pickBackgroundImage.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    },
-                    modifier = Modifier.padding(innerPadding),
-                    contentPadding = contentPadding
-                )
             }
         }
+
+        IosGlassBottomSheet(
+            visible = showBottomSheet,
+            onDismissRequest = { showBottomSheet = false },
+            screenBackdrop = modalBackdrop,
+            title = "Share"
+        ) {
+            IosPlainGroup {
+                IosListRow(title = "Copy Link", showChevron = true, onClick = { showBottomSheet = false })
+                IosGroupDivider()
+                IosListRow(title = "Save Image", showChevron = true, onClick = { showBottomSheet = false })
+                IosGroupDivider()
+                IosListRow(title = "Add to Reading List", showChevron = true, onClick = { showBottomSheet = false })
+            }
+        }
+
+        IosGlassAlertDialog(
+            visible = showAlert,
+            onDismissRequest = { showAlert = false },
+            screenBackdrop = modalBackdrop,
+            title = "Allow Notifications?",
+            message = "Prismal can send you updates about new glass effects and component releases.",
+            confirmText = "Allow",
+            cancelText = "Don't Allow"
+        )
+
+        IosGlassAlertDialog(
+            visible = showDestructiveAlert,
+            onDismissRequest = { showDestructiveAlert = false },
+            screenBackdrop = modalBackdrop,
+            title = "Delete Preset?",
+            message = "This removes your saved glass configuration from this device.",
+            confirmText = "Delete",
+            cancelText = "Cancel",
+            destructive = true,
+            onConfirm = { glassParams.reset() }
+        )
     }
 }
 
@@ -233,6 +285,9 @@ private fun CatalogTabContent(
     indeterminate: Boolean,
     onIndeterminateChange: (Boolean) -> Unit,
     onAdvanceProgress: () -> Unit,
+    onShowBottomSheet: () -> Unit,
+    onShowAlert: () -> Unit,
+    onShowDestructiveAlert: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
@@ -346,6 +401,31 @@ private fun CatalogTabContent(
                     )
                 }
             }
+        }
+
+        item {
+            IosSectionHeader("Dialogs")
+            IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
+                IosListRow(
+                    title = "Liquid Glass Bottom Sheet",
+                    showChevron = true,
+                    onClick = onShowBottomSheet
+                )
+                IosGroupDivider()
+                IosListRow(
+                    title = "iOS Alert",
+                    showChevron = true,
+                    onClick = onShowAlert
+                )
+                IosGroupDivider()
+                IosListRow(
+                    title = "Destructive Alert",
+                    titleColor = IosTheme.colors.systemRed,
+                    showChevron = true,
+                    onClick = onShowDestructiveAlert
+                )
+            }
+            IosSectionFooter("Modals use a fixed iOS-style glass preset for consistent visibility.")
         }
 
         item {
