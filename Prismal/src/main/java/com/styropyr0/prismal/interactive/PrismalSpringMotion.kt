@@ -3,8 +3,8 @@ package com.styropyr0.prismal.interactive
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.MutatorMutex
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
@@ -74,6 +74,15 @@ class PrismalSpringMotion(
     val scaleY: Float get() = scaleYAnimation.value
     val velocity: Float get() = velocityAnimation.value
 
+    /** Reads all animated properties for [snapshotFlow] observers. */
+    fun animationSnapshot(): Float {
+        pressProgress
+        scaleX
+        scaleY
+        velocity
+        return value
+    }
+
     val modifier: Modifier = Modifier.pointerInput(Unit) {
         inspectPrismalDragGestures(
             onDragStart = { down ->
@@ -128,6 +137,7 @@ class PrismalSpringMotion(
         val targetValue = value.coerceIn(valueRange)
         animationScope.launch {
             valueAnimation.snapTo(targetValue)
+            updateVelocity(snap = true)
         }
     }
 
@@ -145,13 +155,19 @@ class PrismalSpringMotion(
         }
     }
 
-    private fun updateVelocity() {
+    private fun updateVelocity(snap: Boolean = false) {
         velocityTracker.addPosition(
             Clock.System.now().toEpochMilliseconds(),
             Offset(value, 0f)
         )
         val targetVelocity =
             velocityTracker.calculateVelocity().x / (valueRange.endInclusive - valueRange.start)
-        animationScope.launch { velocityAnimation.animateTo(targetVelocity, velocityAnimationSpec) }
+        animationScope.launch {
+            if (snap) {
+                velocityAnimation.snapTo(targetVelocity)
+            } else {
+                velocityAnimation.animateTo(targetVelocity, velocityAnimationSpec)
+            }
+        }
     }
 }

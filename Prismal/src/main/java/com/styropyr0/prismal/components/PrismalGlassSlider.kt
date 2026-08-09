@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,6 +48,7 @@ import com.styropyr0.prismal.interactive.PrismalSpringMotion
 import com.styropyr0.prismal.depth.PrismalDepthInset
 import com.styropyr0.prismal.depth.PrismalDepthShadow
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.math.abs
 
 /**
  * Glass-styled slider with a refracting thumb and damped drag physics.
@@ -86,7 +89,15 @@ fun PrismalGlassSlider(
         val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
         val animationScope = rememberCoroutineScope()
         var didDrag by remember { mutableStateOf(false) }
-        val dampedDragAnimation = remember(animationScope, valueRange, trackWidth) {
+        var isDragging by remember { mutableStateOf(false) }
+        var lastReportedValue by remember { mutableFloatStateOf(value()) }
+        val trackWidthState = remember { mutableIntStateOf(0) }
+        trackWidthState.intValue = trackWidth
+        val dampedDragAnimation = remember(
+            animationScope,
+            valueRange.start,
+            valueRange.endInclusive,
+        ) {
             PrismalSpringMotion(
                 animationScope = animationScope,
                 initialValue = value(),
@@ -94,29 +105,47 @@ fun PrismalGlassSlider(
                 visibilityThreshold = visibilityThreshold,
                 initialScale = 1f,
                 pressedScale = 1.5f,
-                onDragStarted = { didDrag = false },
+                onDragStarted = {
+                    isDragging = true
+                    didDrag = false
+                },
                 onDragStopped = {
+                    isDragging = false
                     if (didDrag) {
+                        lastReportedValue = targetValue
                         onValueChange(targetValue)
                     }
                 },
                 onDrag = { _, dragAmount ->
+                    val width = trackWidthState.intValue
+                    if (width == 0) return@PrismalSpringMotion
                     if (!didDrag) {
                         didDrag = dragAmount.x != 0f
                     }
-                    val delta = (valueRange.endInclusive - valueRange.start) * (dragAmount.x / trackWidth)
-                    val newValue =
-                        if (isLtr) (this.value + delta).coerceIn(valueRange)
-                        else (this.value - delta).coerceIn(valueRange)
-                    snapToValue(newValue)
-                    onValueChange(newValue)
+                    val delta =
+                        (valueRange.endInclusive - valueRange.start) * (dragAmount.x / width.toFloat())
+                    val nextValue = (
+                            if (isLtr) targetValue + delta
+                            else targetValue - delta
+                            ).fastCoerceIn(valueRange.start, valueRange.endInclusive)
+                    updateValue(nextValue)
+                    if (abs(nextValue - lastReportedValue) >= visibilityThreshold) {
+                        lastReportedValue = nextValue
+                        onValueChange(nextValue)
+                    }
                 }
             )
+        }
+        var motionFrame by remember { mutableIntStateOf(0) }
+        LaunchedEffect(dampedDragAnimation) {
+            snapshotFlow { dampedDragAnimation.animationSnapshot() }
+                .collect { motionFrame++ }
         }
         LaunchedEffect(dampedDragAnimation) {
             snapshotFlow { value() }
                 .collectLatest { current ->
-                    if (dampedDragAnimation.targetValue != current) {
+                    lastReportedValue = current
+                    if (!isDragging && dampedDragAnimation.targetValue != current) {
                         dampedDragAnimation.updateValue(current)
                     }
                 }
@@ -129,7 +158,8 @@ fun PrismalGlassSlider(
                     .background(trackColor)
                     .pointerInput(animationScope, trackWidth, valueRange, isLtr) {
                         detectTapGestures { position ->
-                            val delta = (valueRange.endInclusive - valueRange.start) * (position.x / trackWidth)
+                            val delta =
+                                (valueRange.endInclusive - valueRange.start) * (position.x / trackWidth)
                             val targetValue =
                                 (if (isLtr) valueRange.start + delta
                                 else valueRange.endInclusive - delta)
@@ -149,7 +179,8 @@ fun PrismalGlassSlider(
                     .height(6.dp)
                     .layout { measurable, constraints ->
                         val placeable = measurable.measure(constraints)
-                        val width = (constraints.maxWidth * dampedDragAnimation.progress).fastRoundToInt()
+                        val width =
+                            (constraints.maxWidth * dampedDragAnimation.progress).fastRoundToInt()
                         layout(width, placeable.height) {
                             placeable.place(0, 0)
                         }
@@ -157,83 +188,85 @@ fun PrismalGlassSlider(
             )
         }
 
-        Box(
-            Modifier
-                .graphicsLayer {
-                    translationX =
-                        (-size.width / 2f + trackWidth * dampedDragAnimation.progress)
-                            .fastCoerceIn(-size.width / 4f, trackWidth - size.width * 3f / 4f) *
-                            if (isLtr) 1f else -1f
-                }
-                .then(dampedDragAnimation.modifier)
-                .drawPrismalGlass(
-                    backdrop = rememberPrismalMergedSource(
-                        backdrop,
-                        rememberPrismalWrappedSource(trackBackdrop) { drawPrismalGlass ->
-                            val progress = dampedDragAnimation.pressProgress
-                            val scaleX = lerp(2f / 3f, 1f, progress)
-                            val scaleY = lerp(0f, 1f, progress)
-                            scale(scaleX, scaleY) {
-                                drawPrismalGlass()
-                            }
-                        }
-                    ),
-                    shape = { PrismalCapsule() },
-                    effects = {
-                        val progress = dampedDragAnimation.pressProgress
-                        if (adaptiveLuminance) {
-                            applyPrismalGlassEffects(
-                                density = density,
-                                adaptiveLuminance = true,
-                                luminance = luminance(),
-                                blurRadiusPx = with(density) { 8.dp.toPx() } * (1f - progress),
-                                refractionHeightPx = with(density) { 10.dp.toPx() } * progress,
-                                refractionAmountPx = with(density) { 14.dp.toPx() } * progress,
-                                chromaticAberration = 1f
-                            )
-                        } else {
-                            prismalBlur(with(density) { 8.dp.toPx() } * (1f - progress))
-                            prismalLens(
-                                refractionHeight = with(density) { 10.dp.toPx() } * progress,
-                                refractionAmount = with(density) { 14.dp.toPx() } * progress,
-                                chromaticAberration = 1f
-                            )
-                        }
-                    },
-                    specular = {
-                        val progress = dampedDragAnimation.pressProgress
-                        PrismalSpecular.Ambient.copy(
-                            width = PrismalSpecular.Ambient.width / 1.5f,
-                            blurRadius = PrismalSpecular.Ambient.blurRadius / 1.5f,
-                            alpha = progress
-                        )
-                    },
-                    depthShadow = {
-                        PrismalDepthShadow(
-                            radius = 4.dp,
-                            color = Color.Black.copy(alpha = 0.05f)
-                        )
-                    },
-                    depthInset = {
-                        val progress = dampedDragAnimation.pressProgress
-                        PrismalDepthInset(
-                            radius = 4.dp * progress,
-                            alpha = progress
-                        )
-                    },
-                    layerBlock = {
-                        scaleX = dampedDragAnimation.scaleX
-                        scaleY = dampedDragAnimation.scaleY
-                        val velocity = dampedDragAnimation.velocity / 10f
-                        scaleX /= 1f - (velocity * 0.75f).fastCoerceIn(-0.2f, 0.2f)
-                        scaleY *= 1f - (velocity * 0.25f).fastCoerceIn(-0.2f, 0.2f)
-                    },
-                    onDrawSurface = {
-                        val progress = dampedDragAnimation.pressProgress
-                        drawRect(Color.White.copy(alpha = 1f - progress))
+        if (motionFrame >= 0) {
+            Box(
+                Modifier
+                    .graphicsLayer {
+                        translationX =
+                            (-size.width / 2f + trackWidth * dampedDragAnimation.progress)
+                                .fastCoerceIn(-size.width / 4f, trackWidth - size.width * 3f / 4f) *
+                                    if (isLtr) 1f else -1f
                     }
-                )
-                .size(40.dp, 24.dp)
-        )
+                    .then(dampedDragAnimation.modifier)
+                    .drawPrismalGlass(
+                        backdrop = rememberPrismalMergedSource(
+                            backdrop,
+                            rememberPrismalWrappedSource(trackBackdrop) { drawPrismalGlass ->
+                                val progress = dampedDragAnimation.pressProgress
+                                val scaleX = lerp(2f / 3f, 1f, progress)
+                                val scaleY = lerp(0f, 1f, progress)
+                                scale(scaleX, scaleY) {
+                                    drawPrismalGlass()
+                                }
+                            }
+                        ),
+                        shape = { PrismalCapsule() },
+                        effects = {
+                            val progress = dampedDragAnimation.pressProgress
+                            if (adaptiveLuminance) {
+                                applyPrismalGlassEffects(
+                                    density = density,
+                                    adaptiveLuminance = true,
+                                    luminance = luminance(),
+                                    blurRadiusPx = with(density) { 8.dp.toPx() } * (1f - progress),
+                                    refractionHeightPx = with(density) { 10.dp.toPx() } * progress,
+                                    refractionAmountPx = with(density) { 14.dp.toPx() } * progress,
+                                    chromaticAberration = 1f
+                                )
+                            } else {
+                                prismalBlur(with(density) { 8.dp.toPx() } * (1f - progress))
+                                prismalLens(
+                                    refractionHeight = with(density) { 10.dp.toPx() } * progress,
+                                    refractionAmount = with(density) { 14.dp.toPx() } * progress,
+                                    chromaticAberration = 1f
+                                )
+                            }
+                        },
+                        specular = {
+                            val progress = dampedDragAnimation.pressProgress
+                            PrismalSpecular.Ambient.copy(
+                                width = PrismalSpecular.Ambient.width / 1.5f,
+                                blurRadius = PrismalSpecular.Ambient.blurRadius / 1.5f,
+                                alpha = progress
+                            )
+                        },
+                        depthShadow = {
+                            PrismalDepthShadow(
+                                radius = 4.dp,
+                                color = Color.Black.copy(alpha = 0.05f)
+                            )
+                        },
+                        depthInset = {
+                            val progress = dampedDragAnimation.pressProgress
+                            PrismalDepthInset(
+                                radius = 4.dp * progress,
+                                alpha = progress
+                            )
+                        },
+                        layerBlock = {
+                            scaleX = dampedDragAnimation.scaleX
+                            scaleY = dampedDragAnimation.scaleY
+                            val velocity = dampedDragAnimation.velocity / 10f
+                            scaleX /= 1f - (velocity * 0.75f).fastCoerceIn(-0.2f, 0.2f)
+                            scaleY *= 1f - (velocity * 0.25f).fastCoerceIn(-0.2f, 0.2f)
+                        },
+                        onDrawSurface = {
+                            val progress = dampedDragAnimation.pressProgress
+                            drawRect(Color.White.copy(alpha = 1f - progress))
+                        }
+                    )
+                    .size(40.dp, 24.dp)
+            )
+        }
     }
 }
