@@ -126,7 +126,7 @@ fun iosColors(darkTheme: Boolean = isSystemInDarkTheme()): IosColors =
             secondaryLabel = Color(0x993C3C43),
             tertiaryLabel = Color(0x4D3C3C43),
             quaternaryLabel = Color(0x2E3C3C43),
-            systemBlue = Color(0xFF007AFF),
+            systemBlue = Color(0xFF1485FF),
             systemRed = Color(0xFFFF3B30),
             systemGreen = Color(0xFF34C759),
             separator = Color(0x493C3C43),

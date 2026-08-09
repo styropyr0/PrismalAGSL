@@ -20,11 +20,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,8 +36,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -104,11 +101,9 @@ fun CatalogPlaygroundScreen() {
             backgroundImageUri = backgroundImageUri
         )
 
-        Box(
-            Modifier
-                .fillMaxSize()
-                .prismalGlassLayer(screenLayer)
-        ) {
+        Box(Modifier
+            .fillMaxSize()
+            .prismalGlassLayer(screenLayer)) {
             Scaffold(
                 containerColor = Color.Transparent,
                 bottomBar = {
@@ -117,30 +112,31 @@ fun CatalogPlaygroundScreen() {
                         onTabSelected = { selectedTab = it },
                         backdrop = backdropLayer,
                         tabsCount = 4,
-                        dropletContentTint = Color.Black,
+                        specular = glassParams.specularProvider(),
+                        dropletContentTint = IosTheme.colors.systemBlue,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                     ) {
                         IosTabItem(
                             index = PlaygroundTab.Home.ordinal,
-                            icon = Icons.Rounded.Home,
+                            icon = R.drawable.ic_home.asIcon(),
                             label = "Home",
                             onClick = { selectedTab = PlaygroundTab.Home.ordinal }
                         )
                         IosTabItem(
                             index = PlaygroundTab.Search.ordinal,
-                            icon = Icons.Rounded.Search,
+                            icon = R.drawable.ic_search.asIcon(),
                             label = "Search",
                             onClick = { selectedTab = PlaygroundTab.Search.ordinal }
                         )
                         IosTabItem(
                             index = PlaygroundTab.Profile.ordinal,
-                            icon = Icons.Rounded.Person,
+                            icon = R.drawable.ic_user.asIcon(),
                             label = "Profile",
                             onClick = { selectedTab = PlaygroundTab.Profile.ordinal }
                         )
                         IosTabItem(
                             index = PlaygroundTab.Settings.ordinal,
-                            icon = Icons.Rounded.Settings,
+                            icon = R.drawable.ic_play.asIcon(),
                             label = "Settings",
                             onClick = { selectedTab = PlaygroundTab.Settings.ordinal }
                         )
@@ -211,11 +207,20 @@ fun CatalogPlaygroundScreen() {
             title = "Share"
         ) {
             IosPlainGroup {
-                IosListRow(title = "Copy Link", showChevron = true, onClick = { showBottomSheet = false })
+                IosListRow(
+                    title = "Copy Link",
+                    showChevron = true,
+                    onClick = { showBottomSheet = false })
                 IosGroupDivider()
-                IosListRow(title = "Save Image", showChevron = true, onClick = { showBottomSheet = false })
+                IosListRow(
+                    title = "Save Image",
+                    showChevron = true,
+                    onClick = { showBottomSheet = false })
                 IosGroupDivider()
-                IosListRow(title = "Add to Reading List", showChevron = true, onClick = { showBottomSheet = false })
+                IosListRow(
+                    title = "Add to Reading List",
+                    showChevron = true,
+                    onClick = { showBottomSheet = false })
             }
         }
 
@@ -244,15 +249,10 @@ fun CatalogPlaygroundScreen() {
 }
 
 @Composable
-private fun RowScope.IosTabItem(
-    index: Int,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit
-) {
+private fun RowScope.IosTabItem(index: Int, icon: ImageVector, label: String, onClick: () -> Unit) {
     val isDark = isSystemInDarkTheme()
     val selectedColor = if (isDark) Color.White else Color.Black
-    val unselectedColor = Color.White
+    val unselectedColor = if (isDark) Color.White else Color.Black
     val highlightedIndex = LocalPrismalBottomTabHighlightedIndex.current()
     val selected = highlightedIndex == index
 
@@ -343,7 +343,12 @@ private fun CatalogTabContent(
         item {
             IosSectionHeader("Intensity")
             IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
-                Column(Modifier.padding(horizontal = IosLayout.groupInnerPadding, vertical = 14.dp)) {
+                Column(
+                    Modifier.padding(
+                        horizontal = IosLayout.groupInnerPadding,
+                        vertical = 14.dp
+                    )
+                ) {
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -435,7 +440,10 @@ private fun CatalogTabContent(
                 params = glassParams,
                 luminance = luminance,
                 shape = { PrismalRoundedRectangle(glassParams.cornerRadiusDp.dp) },
-                modifier = Modifier.fillMaxWidth().height(88.dp).padding(horizontal = IosLayout.rowHorizontalPadding),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(88.dp)
+                    .padding(horizontal = IosLayout.rowHorizontalPadding),
                 onClick = {},
                 content = {
                     Column(
@@ -549,4 +557,9 @@ private fun DefaultPlaygroundBackdrop(modifier: Modifier = Modifier) {
                 )
         )
     }
+}
+
+@Composable
+fun Int.asIcon(): ImageVector {
+    return ImageVector.vectorResource(this)
 }

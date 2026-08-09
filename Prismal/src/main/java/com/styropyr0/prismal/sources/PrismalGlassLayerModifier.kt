@@ -15,8 +15,7 @@ import com.styropyr0.prismal.internal.capturePrismalLayer
  *
  * Apply to background layers (images, scroll content, etc.) before drawing glass on top.
  */
-fun Modifier.prismalGlassLayer(backdrop: PrismalGlassLayer): Modifier =
-    this then PrismalGlassLayerElement(backdrop)
+fun Modifier.prismalGlassLayer(backdrop: PrismalGlassLayer): Modifier = this then PrismalGlassLayerElement(backdrop)
 
 private class PrismalGlassLayerElement(
     val backdrop: PrismalGlassLayer

@@ -421,9 +421,7 @@ private fun IosAlertButton(
     bold: Boolean = false
 ) {
     Box(
-        modifier = modifier
-            .height(44.dp)
-            .clickable(onClick = onClick),
+        modifier = modifier.height(44.dp).clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Text(
