@@ -138,26 +138,32 @@ fun GlassSettingsPlayground(
                         onCheckedChange = { params.useVibrancy = it },
                         backdrop = backdrop
                     )
-                    if (!params.useVibrancy) {
-                        IosGroupDivider()
-                        IosSliderRow(
-                            title = "Brightness",
-                            value = params.brightness,
-                            valueLabel = "%.2f".format(params.brightness),
-                            onValueChange = { params.brightness = it },
-                            valueRange = -0.3f..0.5f,
-                            backdrop = backdrop
-                        )
-                        IosGroupDivider()
-                        IosSliderRow(
-                            title = "Saturation",
-                            value = params.saturation,
-                            valueLabel = "%.2f".format(params.saturation),
-                            onValueChange = { params.saturation = it },
-                            valueRange = 0.5f..2.5f,
-                            backdrop = backdrop
-                        )
-                    }
+                }
+                IosGroupDivider()
+                IosSliderRow(
+                    title = "Brightness",
+                    value = params.brightness,
+                    valueLabel = "%.2f".format(params.brightness),
+                    onValueChange = {
+                        params.brightness = it
+                        if (params.useVibrancy) {
+                            params.useVibrancy = false
+                        }
+                    },
+                    valueRange = -0.3f..0.5f,
+                    backdrop = backdrop,
+                    enabled = !params.adaptiveLuminance
+                )
+                if (!params.adaptiveLuminance && !params.useVibrancy) {
+                    IosGroupDivider()
+                    IosSliderRow(
+                        title = "Saturation",
+                        value = params.saturation,
+                        valueLabel = "%.2f".format(params.saturation),
+                        onValueChange = { params.saturation = it },
+                        valueRange = 0.5f..2.5f,
+                        backdrop = backdrop
+                    )
                 }
                 IosGroupDivider()
                 IosSliderRow(
@@ -168,6 +174,11 @@ fun GlassSettingsPlayground(
                     valueRange = 0f..0.6f,
                     backdrop = backdrop
                 )
+            }
+            if (params.adaptiveLuminance) {
+                IosSectionFooter("Turn off Adaptive Luminance to tune brightness manually.")
+            } else if (params.useVibrancy) {
+                IosSectionFooter("Adjusting brightness switches to manual color controls.")
             }
         }
 

@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -262,11 +263,16 @@ fun IosSliderRow(
     onValueChange: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
     backdrop: PrismalBackdrop,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
+    val labelColor = if (enabled) IosTheme.colors.label else IosTheme.colors.tertiaryLabel
+    val valueColor = if (enabled) IosTheme.colors.secondaryLabel else IosTheme.colors.tertiaryLabel
+
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .alpha(if (enabled) 1f else 0.45f)
             .padding(
                 horizontal = IosLayout.rowHorizontalPadding,
                 vertical = IosLayout.rowVerticalPadding
@@ -278,17 +284,19 @@ fun IosSliderRow(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(title, style = IosTheme.body, color = IosTheme.colors.label)
-            Text(valueLabel, style = IosTheme.body, color = IosTheme.colors.secondaryLabel)
+            Text(title, style = IosTheme.body, color = labelColor)
+            Text(valueLabel, style = IosTheme.body, color = valueColor)
         }
-        PrismalGlassSlider(
-            value = { value },
-            onValueChange = onValueChange,
-            valueRange = valueRange,
-            visibilityThreshold = (valueRange.endInclusive - valueRange.start) * 0.005f,
-            backdrop = backdrop,
-            modifier = Modifier.fillMaxWidth()
-        )
+        Box(Modifier.fillMaxWidth()) {
+            PrismalGlassSlider(
+                value = { value },
+                onValueChange = if (enabled) onValueChange else { _ -> },
+                valueRange = valueRange,
+                visibilityThreshold = (valueRange.endInclusive - valueRange.start) * 0.005f,
+                backdrop = backdrop,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
