@@ -72,6 +72,7 @@ import kotlin.math.sign
  * @param dropletContentTint Color used when [tintDropletContent] is true. When `null`,
  *   defaults to iOS-style blue (`#0088FF` light / `#0091FF` dark). Pass any [Color]
  *   (e.g. [Color.Black]) to override.
+ * @param specular The specular setting for the base pill
  */
 @Composable
 fun PrismalGlassBottomTabs(
@@ -84,6 +85,7 @@ fun PrismalGlassBottomTabs(
     luminance: () -> Float = { 0.5f },
     tintDropletContent: Boolean = true,
     dropletContentTint: Color? = null,
+    specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
     content: @Composable RowScope.() -> Unit
 ) {
     val isLightTheme = !isSystemInDarkTheme()
@@ -202,6 +204,7 @@ fun PrismalGlassBottomTabs(
                     .drawPrismalGlass(
                         backdrop = backdrop,
                         shape = { PrismalCapsule() },
+                        specular = specular,
                         effects = {
                             applyPrismalGlassEffects(
                                 density = density,
