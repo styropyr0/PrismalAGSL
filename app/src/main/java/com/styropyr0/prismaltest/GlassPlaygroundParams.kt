@@ -28,7 +28,8 @@ class GlassPlaygroundParams {
     var refractionAmountDp by mutableFloatStateOf(32f)
     var brightness by mutableFloatStateOf(0f)
     var saturation by mutableFloatStateOf(1.5f)
-    var chromaticAberration by mutableStateOf(false)
+    var chromaticAberration by mutableFloatStateOf(0f)
+    var cornerRadiusDp by mutableFloatStateOf(22f)
     var depthEffect by mutableStateOf(false)
     var adaptiveLuminance by mutableStateOf(false)
     var useVibrancy by mutableStateOf(true)
@@ -52,7 +53,8 @@ class GlassPlaygroundParams {
         refractionAmountDp = 32f
         brightness = 0f
         saturation = 1.5f
-        chromaticAberration = false
+        chromaticAberration = 0f
+        cornerRadiusDp = 22f
         depthEffect = false
         adaptiveLuminance = false
         useVibrancy = true

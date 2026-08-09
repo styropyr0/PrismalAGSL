@@ -89,10 +89,12 @@ fun GlassSettingsPlayground(
                     backdrop = backdrop
                 )
                 IosGroupDivider()
-                IosToggleRow(
+                IosSliderRow(
                     title = "Chromatic Aberration",
-                    checked = params.chromaticAberration,
-                    onCheckedChange = { params.chromaticAberration = it },
+                    value = params.chromaticAberration,
+                    valueLabel = "${(params.chromaticAberration * 100).toInt()}%",
+                    onValueChange = { params.chromaticAberration = it },
+                    valueRange = 0f..1f,
                     backdrop = backdrop
                 )
                 IosGroupDivider()
@@ -100,6 +102,20 @@ fun GlassSettingsPlayground(
                     title = "Depth Effect",
                     checked = params.depthEffect,
                     onCheckedChange = { params.depthEffect = it },
+                    backdrop = backdrop
+                )
+            }
+        }
+
+        item {
+            IosSectionHeader("Shape")
+            IosGlassGroup(backdrop = backdrop, params = params, luminance = luminance) {
+                IosSliderRow(
+                    title = "Corner Radius",
+                    value = params.cornerRadiusDp,
+                    valueLabel = "${params.cornerRadiusDp.toInt()} pt",
+                    onValueChange = { params.cornerRadiusDp = it },
+                    valueRange = 0f..48f,
                     backdrop = backdrop
                 )
             }

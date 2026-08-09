@@ -68,7 +68,7 @@ private enum class PlaygroundTab {
 @Composable
 fun CatalogPlaygroundScreen() {
     val backdropLayer = rememberPrismalGlassLayer()
-    val glassParams = remember { GlassPlaygroundParams() }
+    val glassParams = rememberGlassPlaygroundParams()
     var selectedTab by remember { mutableIntStateOf(PlaygroundTab.Home.ordinal) }
     var toggleOn by remember { mutableStateOf(true) }
     var sliderValue by remember { mutableFloatStateOf(0.45f) }
@@ -354,7 +354,7 @@ private fun CatalogTabContent(
                 backdrop = backdrop,
                 params = glassParams,
                 luminance = luminance,
-                shape = { PrismalRoundedRectangle(IosLayout.groupCorner) },
+                shape = { PrismalRoundedRectangle(glassParams.cornerRadiusDp.dp) },
                 modifier = Modifier.fillMaxWidth().height(88.dp).padding(horizontal = IosLayout.rowHorizontalPadding),
                 onClick = {},
                 content = {
