@@ -9,6 +9,7 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -60,6 +61,16 @@ private val ModalSquishEnterSpring = spring<Float>(
 )
 
 @Composable
+private fun modalSurfaceTint(): Color {
+    val isLightTheme = !isSystemInDarkTheme()
+    return if (isLightTheme) {
+        Color.White.copy(alpha = 0.58f)
+    } else {
+        Color(0xFF1C1C1E).copy(alpha = 0.82f)
+    }
+}
+
+@Composable
 private fun PlaygroundModalScrim(
     alpha: Float,
     onDismiss: () -> Unit,
@@ -85,6 +96,7 @@ private fun ModalGlassSurface(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val density = LocalDensity.current
+    val surfaceTint = modalSurfaceTint()
 
     Box(modifier = modifier.wrapContentSize()) {
         Box(
@@ -94,6 +106,9 @@ private fun ModalGlassSurface(
                     backdrop = backdrop,
                     shape = shape,
                     effects = prismalGlassEffects(density, luminance = 0.3f),
+                    onDrawSurface = {
+                        drawRect(surfaceTint)
+                    }
                 )
         )
         content()
