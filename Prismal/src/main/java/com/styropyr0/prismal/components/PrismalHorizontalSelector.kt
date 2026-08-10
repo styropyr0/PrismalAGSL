@@ -141,11 +141,7 @@ fun PrismalHorizontalSelector(
         onDrawDropletSurface = onDrawDropletSurface,
         chromaticAberration = chromaticAberration,
     ) { index, focus ->
-        val fontWeight = if (boldWhenFocused && focus > 0.88f) {
-            FontWeight.Bold
-        } else {
-            FontWeight.Medium
-        }
+        val fontWeight = if (boldWhenFocused && focus > 0.88f) FontWeight.Bold else FontWeight.Medium
         BasicText(
             text = labels[index],
             style = labelStyle.copy(fontWeight = fontWeight, textAlign = TextAlign.Center),

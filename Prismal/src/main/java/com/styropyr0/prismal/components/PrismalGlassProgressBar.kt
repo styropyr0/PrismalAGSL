@@ -19,6 +19,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import kotlin.math.min
@@ -28,11 +29,18 @@ import com.styropyr0.prismal.effects.applyPrismalGlassEffects
 import com.styropyr0.prismal.shapes.PrismalCapsule
 
 /**
- * Single-layer glass progress track. Fill is drawn on [onDrawSurface] to avoid nested
- * backdrop chains that overflow the RenderThread stack.
+ * Single-layer glass progress track. The track uses backdrop blur with a tinted overlay —
+ * no edge refraction, since it adds little at this size.
+ *
+ * Fill is drawn on [onDrawSurface] to avoid nested backdrop chains that overflow the
+ * RenderThread stack.
  *
  * @param progress Current progress in `[0, 1]`; ignored when [indeterminate] is true.
  * @param indeterminate When true, shows a looping animation instead of [progress].
+ * @param blurRadius Backdrop blur radius for the track.
+ * @param trackAlpha Alpha of the neutral tint drawn over the blurred track. When `null`,
+ *   defaults to `0.2` in light theme and `0.36` in dark theme.
+ * @param trackTint Base color multiplied by [trackAlpha] for the track overlay.
  */
 @Composable
 fun PrismalGlassProgressBar(
@@ -41,16 +49,18 @@ fun PrismalGlassProgressBar(
     modifier: Modifier = Modifier,
     indeterminate: Boolean = false,
     adaptiveLuminance: Boolean = false,
-    luminance: () -> Float = { 0.5f }
+    luminance: () -> Float = { 0.5f },
+    blurRadius: Dp = 4.dp,
+    trackAlpha: Float? = null,
+    trackTint: Color = Color(0xFF787880),
 ) {
     val density = LocalDensity.current
     val isLightTheme = !isSystemInDarkTheme()
     val accentColor =
         if (isLightTheme) Color(0xFF0088FF)
         else Color(0xFF0091FF)
-    val trackColor =
-        if (isLightTheme) Color(0xFF787878).copy(0.2f)
-        else Color(0xFF787880).copy(0.36f)
+    val resolvedTrackAlpha = trackAlpha ?: if (isLightTheme) 0.2f else 0.36f
+    val trackColor = trackTint.copy(alpha = resolvedTrackAlpha)
 
     val infiniteTransition = rememberInfiniteTransition(label = "progress")
     val indeterminateShift by infiniteTransition.animateFloat(
@@ -78,9 +88,10 @@ fun PrismalGlassProgressBar(
                             density = density,
                             adaptiveLuminance = adaptiveLuminance,
                             luminance = luminance(),
-                            blurRadiusPx = with(density) { 4.dp.toPx() },
-                            refractionHeightPx = with(density) { 8.dp.toPx() },
-                            refractionAmountPx = with(density) { 12.dp.toPx() }
+                            blurRadiusPx = with(density) { blurRadius.toPx() },
+                            refractionHeightPx = 0f,
+                            refractionAmountPx = 0f,
+                            useVibrancy = false,
                         )
                     },
                     onDrawSurface = {

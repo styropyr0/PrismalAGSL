@@ -40,6 +40,7 @@ import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.lerp
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.PrismalGlassEffectProvider
+import com.styropyr0.prismal.drawPlainPrismalGlass
 import com.styropyr0.prismal.drawPrismalGlass
 import com.styropyr0.prismal.effects.applyPrismalGlassEffects
 import com.styropyr0.prismal.interactive.PrismalPressRipple
@@ -235,15 +236,21 @@ fun PlaygroundGlassProgressBar(
             Modifier
                 .fillMaxWidth()
                 .height(8.dp)
-                .drawPrismalGlass(
+                .drawPlainPrismalGlass(
                     backdrop = backdrop,
                     shape = { PrismalCapsule() },
-                    effects = params.glassEffects(density, luminance()),
-                    specular = params.specularProvider(),
-                    depthShadow = params.depthShadowProvider(),
-                    depthInset = params.depthInsetProvider(),
+                    effects = {
+                        applyPrismalGlassEffects(
+                            density = density,
+                            adaptiveLuminance = params.adaptiveLuminance,
+                            luminance = luminance(),
+                            blurRadiusPx = with(density) { 4.dp.toPx() },
+                            refractionHeightPx = 0f,
+                            refractionAmountPx = 0f,
+                            useVibrancy = false,
+                        )
+                    },
                     onDrawSurface = {
-                        drawPlaygroundSurfaceTint(params)
                         drawRect(trackColor)
                         if (indeterminate) {
                             val fillWidth = size.width * fraction
