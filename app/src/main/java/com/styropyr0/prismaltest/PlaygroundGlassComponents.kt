@@ -41,6 +41,7 @@ import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.drawPrismalGlass
 import com.styropyr0.prismal.interactive.PrismalPressRipple
 import com.styropyr0.prismal.shapes.PrismalCapsule
+import com.styropyr0.prismal.sources.PrismalGlassLayer
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -112,6 +113,7 @@ fun PlaygroundGlassSurface(
     onClick: (() -> Unit)? = null,
     tint: Color = Color.Unspecified,
     surfaceColor: Color = Color.Unspecified,
+    nestedGlassSource: PrismalGlassLayer? = null,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
     val density = LocalDensity.current
@@ -135,7 +137,8 @@ fun PlaygroundGlassSurface(
                 pressRipple = interactivePrismalSpecular,
                 pressLiftPx = pressLiftPx,
                 tint = tint,
-                surfaceColor = surfaceColor
+                surfaceColor = surfaceColor,
+                nestedGlassSource = nestedGlassSource
             )
             .then(
                 if (onClick != null) {
@@ -247,6 +250,7 @@ private fun Modifier.playgroundGlassModifier(
     pressLiftPx: Float,
     tint: Color,
     surfaceColor: Color,
+    nestedGlassSource: PrismalGlassLayer? = null,
 ): Modifier {
     val density = LocalDensity.current
 
@@ -257,6 +261,7 @@ private fun Modifier.playgroundGlassModifier(
         specular = params.specularProvider(),
         depthShadow = params.depthShadowProvider(),
         depthInset = params.depthInsetProvider(),
+        nestedGlassSource = nestedGlassSource,
         layerBlock = if (pressRipple != null) {
             {
                 val width = size.width

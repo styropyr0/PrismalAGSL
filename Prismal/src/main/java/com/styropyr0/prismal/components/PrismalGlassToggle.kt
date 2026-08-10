@@ -123,6 +123,11 @@ fun PrismalGlassToggle(
     }
 
     val trackBackdrop = rememberPrismalGlassLayer()
+    val parentGlassLayer = LocalPrismalParentGlassLayer.current
+    val underlayBackdrop = parentGlassLayer ?: backdrop
+
+    trackBackdrop.readSamplingState()
+    parentGlassLayer?.readSamplingState()
 
     Box(
         modifier,
@@ -152,7 +157,7 @@ fun PrismalGlassToggle(
                 .then(dampedDragAnimation.modifier)
                 .drawPrismalGlass(
                     backdrop = rememberPrismalMergedSource(
-                        backdrop,
+                        underlayBackdrop,
                         rememberPrismalWrappedSource(trackBackdrop) { drawPrismalGlass ->
                             val progress = dampedDragAnimation.pressProgress
                             val scaleX = lerp(2f / 3f, 0.75f, progress)

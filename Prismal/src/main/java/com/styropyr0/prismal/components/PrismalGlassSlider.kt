@@ -80,6 +80,11 @@ fun PrismalGlassSlider(
         else Color(0xFF787880).copy(0.36f)
 
     val trackBackdrop = rememberPrismalGlassLayer()
+    val parentGlassLayer = LocalPrismalParentGlassLayer.current
+    val underlayBackdrop = parentGlassLayer ?: backdrop
+
+    trackBackdrop.readSamplingState()
+    parentGlassLayer?.readSamplingState()
 
     BoxWithConstraints(
         modifier.fillMaxWidth(),
@@ -200,7 +205,7 @@ fun PrismalGlassSlider(
                     .then(dampedDragAnimation.modifier)
                     .drawPrismalGlass(
                         backdrop = rememberPrismalMergedSource(
-                            backdrop,
+                            underlayBackdrop,
                             rememberPrismalWrappedSource(trackBackdrop) { drawPrismalGlass ->
                                 val progress = dampedDragAnimation.pressProgress
                                 val scaleX = lerp(2f / 3f, 1f, progress)

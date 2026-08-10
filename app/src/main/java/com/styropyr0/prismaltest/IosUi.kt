@@ -25,6 +25,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -33,8 +34,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.PrismalBackdrop
+import com.styropyr0.prismal.components.LocalPrismalParentGlassLayer
 import com.styropyr0.prismal.components.PrismalGlassSlider
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
+import com.styropyr0.prismal.sources.rememberPrismalGlassLayer
 
 object IosLayout {
     val screenHorizontal = 16.dp
@@ -135,16 +138,20 @@ fun IosGlassGroup(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    PlaygroundGlassSurface(
-        backdrop = backdrop,
-        params = params,
-        luminance = luminance,
-        shape = { PrismalRoundedRectangle(params.cornerRadiusDp.dp) },
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = IosLayout.screenHorizontal),
-        content = { Column(content = content) }
-    )
+    val groupGlassLayer = rememberPrismalGlassLayer()
+    CompositionLocalProvider(LocalPrismalParentGlassLayer provides groupGlassLayer) {
+        PlaygroundGlassSurface(
+            backdrop = backdrop,
+            params = params,
+            luminance = luminance,
+            shape = { PrismalRoundedRectangle(params.cornerRadiusDp.dp) },
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = IosLayout.screenHorizontal),
+            nestedGlassSource = groupGlassLayer,
+            content = { Column(content = content) }
+        )
+    }
 }
 
 @Composable
