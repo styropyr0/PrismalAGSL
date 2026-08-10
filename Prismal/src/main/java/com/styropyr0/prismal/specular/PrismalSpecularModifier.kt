@@ -104,7 +104,7 @@ internal class PrismalSpecularNode(
                     ceil(size.height).toInt() + 2
                 )
 
-            val outline = shapeProvider.shape.createOutline(size, layoutDirection, density)
+            val outline = shapeProvider.innerShape.createOutline(size, layoutDirection, density)
             val clipPath =
                 if (outline is Outline.Rounded) {
                     clipPath ?: Path().also { clipPath = it }
@@ -156,7 +156,7 @@ internal class PrismalSpecularNode(
             val shader =
                 with(specular.style) {
                     createShader(
-                        shape = shapeProvider.shape,
+                        shape = shapeProvider.innerShape,
                         runtimeShaderCache = agslShaderCache
                     )
                 }

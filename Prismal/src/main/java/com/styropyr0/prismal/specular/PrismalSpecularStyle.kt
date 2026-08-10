@@ -15,6 +15,7 @@ import com.styropyr0.prismal.PrismalShaderCache
 import com.styropyr0.prismal.internal.PrismalAmbientSpecularShader
 import com.styropyr0.prismal.internal.PrismalDefaultSpecularShader
 import com.styropyr0.prismal.isAGSLShaderSupported
+import com.styropyr0.prismal.shapes.PrismalRoundedRectangularShape
 import kotlin.math.PI
 
 /** Rendering style for [PrismalSpecular] edge highlights. */
@@ -116,24 +117,39 @@ interface PrismalSpecularStyle {
 private fun DrawScope.getCornerRadii(shape: Shape): FloatArray {
     val size = size
     val maxRadius = size.minDimension / 2f
-    val shape = shape as? CornerBasedShape ?: return FloatArray(4) { maxRadius }
-    val isLtr = layoutDirection == LayoutDirection.Ltr
-    val topLeft =
-        if (isLtr) shape.topStart.toPx(size, this)
-        else shape.topEnd.toPx(size, this)
-    val topRight =
-        if (isLtr) shape.topEnd.toPx(size, this)
-        else shape.topStart.toPx(size, this)
-    val bottomRight =
-        if (isLtr) shape.bottomEnd.toPx(size, this)
-        else shape.bottomStart.toPx(size, this)
-    val bottomLeft =
-        if (isLtr) shape.bottomStart.toPx(size, this)
-        else shape.bottomEnd.toPx(size, this)
-    return floatArrayOf(
-        topLeft.fastCoerceAtMost(maxRadius),
-        topRight.fastCoerceAtMost(maxRadius),
-        bottomRight.fastCoerceAtMost(maxRadius),
-        bottomLeft.fastCoerceAtMost(maxRadius)
-    )
+    return when (shape) {
+        is PrismalRoundedRectangularShape -> {
+            val corners = shape.corners(size, layoutDirection, this)
+            floatArrayOf(
+                corners.topLeft.fastCoerceAtMost(maxRadius),
+                corners.topRight.fastCoerceAtMost(maxRadius),
+                corners.bottomRight.fastCoerceAtMost(maxRadius),
+                corners.bottomLeft.fastCoerceAtMost(maxRadius)
+            )
+        }
+
+        is CornerBasedShape -> {
+            val isLtr = layoutDirection == LayoutDirection.Ltr
+            val topLeft =
+                if (isLtr) shape.topStart.toPx(size, this)
+                else shape.topEnd.toPx(size, this)
+            val topRight =
+                if (isLtr) shape.topEnd.toPx(size, this)
+                else shape.topStart.toPx(size, this)
+            val bottomRight =
+                if (isLtr) shape.bottomEnd.toPx(size, this)
+                else shape.bottomStart.toPx(size, this)
+            val bottomLeft =
+                if (isLtr) shape.bottomStart.toPx(size, this)
+                else shape.bottomEnd.toPx(size, this)
+            floatArrayOf(
+                topLeft.fastCoerceAtMost(maxRadius),
+                topRight.fastCoerceAtMost(maxRadius),
+                bottomRight.fastCoerceAtMost(maxRadius),
+                bottomLeft.fastCoerceAtMost(maxRadius)
+            )
+        }
+
+        else -> FloatArray(4) { maxRadius }
+    }
 }

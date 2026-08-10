@@ -193,16 +193,15 @@ fun GlassSettingsPlayground(
                 )
                 if (params.specularEnabled) {
                     IosGroupDivider()
-                    Column(Modifier.padding(bottom = 4.dp)) {
-                        IosSegmentedControl(
-                            options = SpecularStyleOption.entries.map { it.name },
-                            selectedIndex = SpecularStyleOption.entries.indexOf(params.specularStyle),
-                            onSelected = { params.specularStyle = SpecularStyleOption.entries[it] },
-                            backdrop = backdrop,
-                            params = params,
-                            luminance = luminance
-                        )
-                    }
+                    IosGlassDropdownRow(
+                        title = "Style",
+                        options = SpecularStyleOption.entries.map { it.name },
+                        selectedIndex = SpecularStyleOption.entries.indexOf(params.specularStyle),
+                        onSelected = { params.specularStyle = SpecularStyleOption.entries[it] },
+                        backdrop = backdrop,
+                        params = params,
+                        luminance = luminance,
+                    )
                     IosGroupDivider()
                     IosSliderRow(
                         title = "Alpha",
