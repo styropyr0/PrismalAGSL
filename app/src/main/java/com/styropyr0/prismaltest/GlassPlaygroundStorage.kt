@@ -1,9 +1,13 @@
 package com.styropyr0.prismaltest
 
 import android.content.Context
+import android.net.Uri
+import androidx.core.net.toUri
+import java.io.File
 
 object GlassPlaygroundStorage {
     private const val PREFS_NAME = "glass_playground"
+    private const val WALLPAPER_FILE_NAME = "playground_wallpaper"
 
     private const val KEY_BLUR_RADIUS = "blur_radius"
     private const val KEY_REFRACTION_HEIGHT = "refraction_height"
@@ -87,5 +91,28 @@ object GlassPlaygroundStorage {
             .putFloat(KEY_GRADIENT_BLUR_FADE_END, params.gradientBlurFadeEnd)
             .putFloat(KEY_GRADIENT_BOTTOM_WEIGHT, params.gradientBottomWeight)
             .apply()
+    }
+
+    fun loadBackgroundImageUri(context: Context): Uri? {
+        val wallpaperFile = wallpaperFile(context)
+        return wallpaperFile.takeIf { it.exists() }?.toUri()
+    }
+
+    fun saveBackgroundImage(context: Context, sourceUri: Uri): Uri? {
+        return try {
+            val wallpaperFile = wallpaperFile(context)
+            context.contentResolver.openInputStream(sourceUri)?.use { input ->
+                wallpaperFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            } ?: return null
+            wallpaperFile.toUri()
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun wallpaperFile(context: Context): File {
+        return File(context.filesDir, WALLPAPER_FILE_NAME)
     }
 }

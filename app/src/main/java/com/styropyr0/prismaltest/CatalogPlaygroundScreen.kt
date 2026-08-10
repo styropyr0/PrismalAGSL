@@ -40,7 +40,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -76,11 +75,14 @@ fun CatalogPlaygroundScreen() {
     var sliderValue by remember { mutableFloatStateOf(0.45f) }
     var progress by remember { mutableFloatStateOf(0.65f) }
     var indeterminate by remember { mutableStateOf(false) }
-    var backgroundImageUri by remember { mutableStateOf<Uri?>(null) }
+    val backgroundImageUriState = rememberBackgroundImageUri()
+    var backgroundImageUri by backgroundImageUriState
     var showBottomSheet by remember { mutableStateOf(false) }
     var showAlert by remember { mutableStateOf(false) }
     var showDestructiveAlert by remember { mutableStateOf(false) }
     var cameraModeIndex by remember { mutableIntStateOf(1) }
+
+    val context = LocalContext.current
 
     val isLightTheme = !isSystemInDarkTheme()
     val adaptiveLuminance = rememberPrismalAdaptiveLuminance(
@@ -93,7 +95,9 @@ fun CatalogPlaygroundScreen() {
     val pickBackgroundImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        if (uri != null) backgroundImageUri = uri
+        if (uri != null) {
+            backgroundImageUri = persistBackgroundImage(context, uri) ?: uri
+        }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -117,7 +121,7 @@ fun CatalogPlaygroundScreen() {
                         tabsCount = 4,
                         specular = glassParams.specularProvider(),
                         dropletContentTint = IosTheme.colors.systemBlue,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 15.dp)
                     ) {
                         IosTabItem(
                             index = PlaygroundTab.Home.ordinal,
