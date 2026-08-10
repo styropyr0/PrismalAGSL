@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -48,6 +49,7 @@ import com.styropyr0.prismal.components.LocalPrismalBottomTabHighlightedIndex
 import com.styropyr0.prismal.components.PrismalGlassBottomTab
 import com.styropyr0.prismal.components.PrismalGlassBottomTabs
 import com.styropyr0.prismal.components.PrismalGlassSlider
+import com.styropyr0.prismal.components.PrismalHorizontalSelector
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
 import com.styropyr0.prismal.shapes.PrismalCapsule
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
@@ -78,6 +80,7 @@ fun CatalogPlaygroundScreen() {
     var showBottomSheet by remember { mutableStateOf(false) }
     var showAlert by remember { mutableStateOf(false) }
     var showDestructiveAlert by remember { mutableStateOf(false) }
+    var cameraModeIndex by remember { mutableIntStateOf(1) }
 
     val isLightTheme = !isSystemInDarkTheme()
     val adaptiveLuminance = rememberPrismalAdaptiveLuminance(
@@ -164,6 +167,8 @@ fun CatalogPlaygroundScreen() {
                         onShowBottomSheet = { showBottomSheet = true },
                         onShowAlert = { showAlert = true },
                         onShowDestructiveAlert = { showDestructiveAlert = true },
+                        cameraModeIndex = cameraModeIndex,
+                        onCameraModeChange = { cameraModeIndex = it },
                         modifier = Modifier.padding(innerPadding),
                         contentPadding = contentPadding
                     )
@@ -289,11 +294,47 @@ private fun CatalogTabContent(
     onShowBottomSheet: () -> Unit,
     onShowAlert: () -> Unit,
     onShowDestructiveAlert: () -> Unit,
+    cameraModeIndex: Int,
+    onCameraModeChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     IosGroupedScreen(modifier = modifier, contentPadding = contentPadding) {
         item { IosLargeTitle(title = "Browse", subtitle = "Prismal components") }
+
+        item {
+            IosSectionHeader("Horizontal Selector")
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = IosLayout.screenHorizontal, vertical = 10.dp)
+            ) {
+                val cameraModes = remember {
+                    listOf(
+                        "VIDEO",
+                        "PHOTO",
+                        "PORTRAIT",
+                        "SLO-MO",
+                        "TIME-LAPSE",
+                        "HYPERLAPSE",
+                        "PRO",
+                    )
+                }
+                PrismalHorizontalSelector(
+                    labels = cameraModes,
+                    selectedIndex = cameraModeIndex,
+                    onSelected = onCameraModeChange,
+                    backdrop = backdrop,
+                    textStyle = IosTheme.caption1,
+                    textColor = IosTheme.colors.label,
+                    adaptiveLuminance = glassParams.adaptiveLuminance,
+                    luminance = luminance,
+                    specular = glassParams.specularProvider(),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            IosSectionFooter("Swipe horizontally — the liquid glass droplet stays put while items lock in.")
+        }
 
         item {
             IosSectionHeader("Buttons")
