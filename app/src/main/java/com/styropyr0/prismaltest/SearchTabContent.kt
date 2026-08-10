@@ -37,7 +37,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.shapes.PrismalCapsule
-import com.styropyr0.prismal.sources.PrismalGlassLayer
+import com.styropyr0.prismal.PrismalBackdrop
 
 private val searchSuggestions = listOf(
     "Glass Buttons",
@@ -50,7 +50,7 @@ private val searchSuggestions = listOf(
 
 @Composable
 fun SearchTabContent(
-    backdrop: PrismalGlassLayer,
+    backdrop: PrismalBackdrop,
     glassParams: GlassPlaygroundParams,
     luminance: () -> Float,
     modifier: Modifier = Modifier,
@@ -141,7 +141,7 @@ fun SearchTabContent(
 
 @Composable
 private fun IosGlassSearchField(
-    backdrop: PrismalGlassLayer,
+    backdrop: PrismalBackdrop,
     glassParams: GlassPlaygroundParams,
     luminance: () -> Float,
     query: String,
