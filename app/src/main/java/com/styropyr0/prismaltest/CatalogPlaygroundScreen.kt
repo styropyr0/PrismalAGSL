@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -75,8 +76,7 @@ fun CatalogPlaygroundScreen() {
     var sliderValue by remember { mutableFloatStateOf(0.45f) }
     var progress by remember { mutableFloatStateOf(0.65f) }
     var indeterminate by remember { mutableStateOf(false) }
-    val backgroundImageUriState = rememberBackgroundImageUri()
-    var backgroundImageUri by backgroundImageUriState
+    val backgroundImage = rememberBackgroundImageState()
     var showBottomSheet by remember { mutableStateOf(false) }
     var showAlert by remember { mutableStateOf(false) }
     var showDestructiveAlert by remember { mutableStateOf(false) }
@@ -96,7 +96,7 @@ fun CatalogPlaygroundScreen() {
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         if (uri != null) {
-            backgroundImageUri = persistBackgroundImage(context, uri) ?: uri
+            backgroundImage.update(context, uri)
         }
     }
 
@@ -105,7 +105,8 @@ fun CatalogPlaygroundScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .prismalGlassLayer(backdropLayer),
-            backgroundImageUri = backgroundImageUri
+            backgroundImageUri = backgroundImage.uri,
+            imageCacheKey = backgroundImage.generation,
         )
 
         Box(Modifier
@@ -329,7 +330,7 @@ private fun CatalogTabContent(
                     selectedIndex = cameraModeIndex,
                     onSelected = onCameraModeChange,
                     backdrop = backdrop,
-                    textStyle = IosTheme.caption1,
+                    textStyle = IosTheme.horizontalSelectorLabel,
                     textColor = IosTheme.colors.label,
                     adaptiveLuminance = glassParams.adaptiveLuminance,
                     chromaticAberration = 5f,
@@ -520,19 +521,24 @@ private fun CatalogTabContent(
 @Composable
 private fun PlaygroundBackdrop(
     modifier: Modifier = Modifier,
-    backgroundImageUri: Uri? = null
+    backgroundImageUri: Uri? = null,
+    imageCacheKey: Int = 0,
 ) {
     if (backgroundImageUri != null) {
         val context = LocalContext.current
-        AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(backgroundImageUri)
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-            modifier = modifier,
-            contentScale = ContentScale.Crop
-        )
+        key(imageCacheKey) {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(backgroundImageUri)
+                    .memoryCacheKey("playground-wallpaper-$imageCacheKey")
+                    .diskCacheKey("playground-wallpaper-$imageCacheKey")
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                modifier = modifier,
+                contentScale = ContentScale.Crop,
+            )
+        }
         return
     }
 

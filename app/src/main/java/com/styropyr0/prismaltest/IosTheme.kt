@@ -89,6 +89,13 @@ object IosTheme {
             lineHeight = 16.sp
         )
 
+    val horizontalSelectorLabel: TextStyle
+        @Composable get() = caption1.copy(
+            fontSize = 14.sp,
+            lineHeight = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+
     val sectionHeader: TextStyle
         @Composable get() = footnote.copy(
             fontWeight = FontWeight.Normal,
