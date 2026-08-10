@@ -14,16 +14,16 @@ Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass sur
 
 ## Screenshots
 
-| | |
-|:---:|:---:|
-| Browse — toggle & slider | Refraction & blur settings |
+| |                                                                                |
+|:---:|:------------------------------------------------------------------------------:|
+| Browse — toggle & slider |                           Refraction & blur settings                           |
 | ![Browse glass controls](docs/screenshots/browse-glass-controls.jpg) | ![Refraction and blur settings](docs/screenshots/refraction-blur-settings.jpg) |
-| Search | Profile |
-| ![Search tab](docs/screenshots/search.jpg) | ![Profile tab](docs/screenshots/profile.jpg) |
-| Profile menu & tabs | Gradient glass settings |
-| ![Profile menu and bottom tabs](docs/screenshots/profile-menu-tabs.jpg) | ![Gradient glass settings](docs/screenshots/gradient-glass-settings.jpg) |
-| Widget preview | Widget preview — refraction |
-| ![Widget preview](docs/screenshots/widget-preview.jpg) | ![Widget preview refraction](docs/screenshots/widget-preview-refraction.jpg) |
+| Search |                                    Profile                                     |
+| ![Search tab](docs/screenshots/search.jpg) |                  ![Profile tab](docs/screenshots/profile.jpg)                  |
+| Profile menu & tabs |                           Horizontal Scroll Selector                           |
+| ![Profile menu and bottom tabs](docs/screenshots/profile-menu-tabs.jpg) |    ![Horizontal Scroll Selector](docs/screenshots/gradient-glass-settings.jpg)    |
+| Widget preview |                          Widget preview — refraction                           |
+| ![Widget preview](docs/screenshots/widget-preview.jpg) |  ![Widget preview refraction](docs/screenshots/widget-preview-refraction.jpg)  |
 
 ---
 
