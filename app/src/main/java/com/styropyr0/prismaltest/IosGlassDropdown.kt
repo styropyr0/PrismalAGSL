@@ -43,10 +43,8 @@ import androidx.compose.ui.util.lerp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.styropyr0.prismal.PrismalBackdrop
-import com.styropyr0.prismal.components.LocalPrismalParentGlassLayer
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
 import com.styropyr0.prismal.shapes.PrismalRoundedCornerStyle
-import com.styropyr0.prismal.sources.rememberPrismalMergedSource
 import kotlin.math.min
 
 private val DropdownMorphSpring = spring<Float>(
@@ -78,14 +76,13 @@ fun IosGlassDropdownRow(
     options: List<String>,
     selectedIndex: Int,
     onSelected: (Int) -> Unit,
-    backdrop: PrismalBackdrop,
+    screenBackdrop: PrismalBackdrop,
     params: GlassPlaygroundParams,
     luminance: () -> Float,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var anchorBounds by remember { mutableStateOf(Rect.Zero) }
-    val menuBackdrop = rememberDropdownMenuBackdrop(backdrop)
 
     Box(modifier.fillMaxWidth()) {
         IosListRow(
@@ -114,21 +111,10 @@ fun IosGlassDropdownRow(
                 expanded = false
             },
             onDismiss = { expanded = false },
-            backdrop = menuBackdrop,
+            screenBackdrop = screenBackdrop,
             params = params,
             luminance = luminance,
         )
-    }
-}
-
-@Composable
-private fun rememberDropdownMenuBackdrop(backdrop: PrismalBackdrop): PrismalBackdrop {
-    val parentGlass = LocalPrismalParentGlassLayer.current
-    parentGlass?.readSamplingState()
-    return if (parentGlass != null) {
-        rememberPrismalMergedSource(backdrop, parentGlass)
-    } else {
-        backdrop
     }
 }
 
@@ -140,12 +126,13 @@ private fun IosGlassDropdownMenu(
     selectedIndex: Int,
     onSelected: (Int) -> Unit,
     onDismiss: () -> Unit,
-    backdrop: PrismalBackdrop,
+    screenBackdrop: PrismalBackdrop,
     params: GlassPlaygroundParams,
     luminance: () -> Float,
 ) {
     if (anchorBounds == Rect.Zero) return
 
+    screenBackdrop.readSamplingState()
     val density = LocalDensity.current
     val edgePaddingPx = with(density) { IosLayout.screenHorizontal.roundToPx() }
     val menuGapPx = with(density) { 4.dp.roundToPx() }
@@ -259,10 +246,11 @@ private fun IosGlassDropdownMenu(
                     .graphicsLayer { alpha = popupAlpha }
             ) {
                 PlaygroundGlassSurface(
-                    backdrop = backdrop,
+                    backdrop = screenBackdrop,
                     params = params,
                     luminance = luminance,
                     shape = popupShape,
+                    useModalMaterial = true,
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     Column(Modifier.fillMaxSize()) {

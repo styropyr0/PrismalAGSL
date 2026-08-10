@@ -17,6 +17,7 @@ import com.styropyr0.prismal.sources.PrismalGlassLayer
 @Composable
 fun GlassSettingsPlayground(
     backdrop: PrismalBackdrop,
+    screenBackdrop: PrismalBackdrop,
     backdropLayer: PrismalGlassLayer,
     params: GlassPlaygroundParams,
     onPickWallpaper: () -> Unit,
@@ -198,7 +199,7 @@ fun GlassSettingsPlayground(
                         options = SpecularStyleOption.entries.map { it.name },
                         selectedIndex = SpecularStyleOption.entries.indexOf(params.specularStyle),
                         onSelected = { params.specularStyle = SpecularStyleOption.entries[it] },
-                        backdrop = backdrop,
+                        screenBackdrop = screenBackdrop,
                         params = params,
                         luminance = luminance,
                     )

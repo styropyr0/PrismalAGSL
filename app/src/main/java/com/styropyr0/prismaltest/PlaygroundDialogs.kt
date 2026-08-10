@@ -9,7 +9,6 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -42,7 +41,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.drawPrismalGlass
-import com.styropyr0.prismal.prismalGlassEffects
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
 
 private val BottomSheetShape: Shape = AbsoluteRoundedCornerShape(
@@ -59,16 +57,6 @@ private val ModalSquishEnterSpring = spring<Float>(
     dampingRatio = 0.54f,
     stiffness = 420f,
 )
-
-@Composable
-private fun modalSurfaceTint(): Color {
-    val isLightTheme = !isSystemInDarkTheme()
-    return if (isLightTheme) {
-        Color.White.copy(alpha = 0.58f)
-    } else {
-        Color(0xFF1C1C1E).copy(alpha = 0.82f)
-    }
-}
 
 @Composable
 private fun PlaygroundModalScrim(
@@ -105,7 +93,7 @@ private fun ModalGlassSurface(
                 .drawPrismalGlass(
                     backdrop = backdrop,
                     shape = shape,
-                    effects = prismalGlassEffects(density, luminance = 0.3f),
+                    effects = modalGlassEffects(density),
                     onDrawSurface = {
                         drawRect(surfaceTint)
                     }

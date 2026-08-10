@@ -33,12 +33,15 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtMost
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.lerp
 import com.styropyr0.prismal.PrismalBackdrop
+import com.styropyr0.prismal.PrismalGlassEffectProvider
 import com.styropyr0.prismal.drawPrismalGlass
+import com.styropyr0.prismal.effects.applyPrismalGlassEffects
 import com.styropyr0.prismal.interactive.PrismalPressRipple
 import com.styropyr0.prismal.shapes.PrismalCapsule
 import com.styropyr0.prismal.sources.PrismalGlassLayer
@@ -48,6 +51,30 @@ import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.tanh
+
+private val ModalBlurRadius = 12.dp
+
+@Composable
+fun modalSurfaceTint(): Color {
+    val isLightTheme = !isSystemInDarkTheme()
+    return if (isLightTheme) {
+        Color.White.copy(alpha = 0.58f)
+    } else {
+        Color(0xFF1C1C1E).copy(alpha = 0.82f)
+    }
+}
+
+fun modalGlassEffects(density: Density): PrismalGlassEffectProvider.() -> Unit = {
+    applyPrismalGlassEffects(
+        density = density,
+        adaptiveLuminance = false,
+        luminance = 0.3f,
+        blurRadiusPx = with(density) { ModalBlurRadius.toPx() },
+        refractionHeightPx = with(density) { 16.dp.toPx() },
+        refractionAmountPx = with(density) { 32.dp.toPx() },
+        useVibrancy = true,
+    )
+}
 
 @Composable
 fun PlaygroundGlassButton(
@@ -113,11 +140,17 @@ fun PlaygroundGlassSurface(
     onClick: (() -> Unit)? = null,
     tint: Color = Color.Unspecified,
     surfaceColor: Color = Color.Unspecified,
+    useModalMaterial: Boolean = false,
     nestedGlassSource: PrismalGlassLayer? = null,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
     val density = LocalDensity.current
     val pressLiftPx = with(density) { 4.dp.toPx() }
+    val resolvedSurfaceColor = when {
+        surfaceColor.isSpecified -> surfaceColor
+        useModalMaterial -> modalSurfaceTint()
+        else -> Color.Unspecified
+    }
     val animationScope = rememberCoroutineScope()
     val interactivePrismalSpecular = remember(onClick, animationScope) {
         if (onClick != null) {
@@ -137,7 +170,8 @@ fun PlaygroundGlassSurface(
                 pressRipple = interactivePrismalSpecular,
                 pressLiftPx = pressLiftPx,
                 tint = tint,
-                surfaceColor = surfaceColor,
+                surfaceColor = resolvedSurfaceColor,
+                useModalMaterial = useModalMaterial,
                 nestedGlassSource = nestedGlassSource
             )
             .then(
@@ -250,14 +284,21 @@ private fun Modifier.playgroundGlassModifier(
     pressLiftPx: Float,
     tint: Color,
     surfaceColor: Color,
+    useModalMaterial: Boolean = false,
     nestedGlassSource: PrismalGlassLayer? = null,
 ): Modifier {
     val density = LocalDensity.current
+    val effects =
+        if (useModalMaterial) {
+            modalGlassEffects(density)
+        } else {
+            params.glassEffects(density, luminance())
+        }
 
     return drawPrismalGlass(
         backdrop = backdrop,
         shape = shape,
-        effects = params.glassEffects(density, luminance()),
+        effects = effects,
         specular = params.specularProvider(),
         depthShadow = params.depthShadowProvider(),
         depthInset = params.depthInsetProvider(),
@@ -290,7 +331,7 @@ private fun Modifier.playgroundGlassModifier(
             null
         },
         onDrawSurface = {
-            if (params.surfaceTintAlpha > 0f) {
+            if (!useModalMaterial && params.surfaceTintAlpha > 0f) {
                 drawPlaygroundSurfaceTint(params)
             }
             if (tint.isSpecified) {

@@ -186,6 +186,7 @@ fun CatalogPlaygroundScreen() {
 
                     PlaygroundTab.Settings -> GlassSettingsPlayground(
                         backdrop = backdropLayer,
+                        screenBackdrop = modalBackdrop,
                         backdropLayer = backdropLayer,
                         params = glassParams,
                         onPickWallpaper = {
