@@ -51,7 +51,7 @@ import com.styropyr0.prismal.components.PrismalGlassSlider
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
 import com.styropyr0.prismal.shapes.PrismalCapsule
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
-import com.styropyr0.prismal.PrismalBackdrop
+import com.styropyr0.prismal.sources.PrismalGlassLayer
 import com.styropyr0.prismal.sources.prismalGlassLayer
 import com.styropyr0.prismal.sources.rememberPrismalGlassLayer
 import com.styropyr0.prismal.sources.rememberPrismalMergedSource
@@ -67,7 +67,7 @@ private enum class PlaygroundTab {
 fun CatalogPlaygroundScreen() {
     val backdropLayer = rememberPrismalGlassLayer()
     val screenLayer = rememberPrismalGlassLayer()
-    val glassBackdrop = rememberPrismalMergedSource(backdropLayer, screenLayer)
+    val modalBackdrop = rememberPrismalMergedSource(backdropLayer, screenLayer)
     val glassParams = rememberGlassPlaygroundParams()
     var selectedTab by remember { mutableIntStateOf(PlaygroundTab.Home.ordinal) }
     var toggleOn by remember { mutableStateOf(true) }
@@ -82,7 +82,7 @@ fun CatalogPlaygroundScreen() {
     val isLightTheme = !isSystemInDarkTheme()
     val adaptiveLuminance = rememberPrismalAdaptiveLuminance(
         enabled = glassParams.adaptiveLuminance,
-        source = screenLayer,
+        source = backdropLayer,
         isLightTheme = isLightTheme
     )
     val luminance = { adaptiveLuminance.luminance }
@@ -110,7 +110,7 @@ fun CatalogPlaygroundScreen() {
                     PrismalGlassBottomTabs(
                         selectedTabIndex = { selectedTab },
                         onTabSelected = { selectedTab = it },
-                        backdrop = glassBackdrop,
+                        backdrop = backdropLayer,
                         tabsCount = 4,
                         specular = glassParams.specularProvider(),
                         dropletContentTint = IosTheme.colors.systemBlue,
@@ -148,7 +148,7 @@ fun CatalogPlaygroundScreen() {
 
                 when (PlaygroundTab.entries[selectedTab]) {
                     PlaygroundTab.Home -> CatalogTabContent(
-                        backdrop = glassBackdrop,
+                        backdrop = backdropLayer,
                         glassParams = glassParams,
                         luminance = luminance,
                         toggleOn = toggleOn,
@@ -169,7 +169,7 @@ fun CatalogPlaygroundScreen() {
                     )
 
                     PlaygroundTab.Search -> SearchTabContent(
-                        backdrop = glassBackdrop,
+                        backdrop = backdropLayer,
                         glassParams = glassParams,
                         luminance = luminance,
                         modifier = Modifier.padding(innerPadding),
@@ -177,7 +177,7 @@ fun CatalogPlaygroundScreen() {
                     )
 
                     PlaygroundTab.Profile -> ProfileTabContent(
-                        backdrop = glassBackdrop,
+                        backdrop = backdropLayer,
                         glassParams = glassParams,
                         luminance = luminance,
                         modifier = Modifier.padding(innerPadding),
@@ -185,8 +185,8 @@ fun CatalogPlaygroundScreen() {
                     )
 
                     PlaygroundTab.Settings -> GlassSettingsPlayground(
-                        backdrop = glassBackdrop,
-                        backdropLayer = screenLayer,
+                        backdrop = backdropLayer,
+                        backdropLayer = backdropLayer,
                         params = glassParams,
                         onPickWallpaper = {
                             pickBackgroundImage.launch(
@@ -203,7 +203,7 @@ fun CatalogPlaygroundScreen() {
         IosGlassBottomSheet(
             visible = showBottomSheet,
             onDismissRequest = { showBottomSheet = false },
-            screenBackdrop = glassBackdrop,
+            screenBackdrop = modalBackdrop,
             title = "Share"
         ) {
             IosPlainGroup {
@@ -227,7 +227,7 @@ fun CatalogPlaygroundScreen() {
         IosGlassAlertDialog(
             visible = showAlert,
             onDismissRequest = { showAlert = false },
-            screenBackdrop = glassBackdrop,
+            screenBackdrop = modalBackdrop,
             title = "Allow Notifications?",
             message = "Prismal can send you updates about new glass effects and component releases.",
             confirmText = "Allow",
@@ -237,7 +237,7 @@ fun CatalogPlaygroundScreen() {
         IosGlassAlertDialog(
             visible = showDestructiveAlert,
             onDismissRequest = { showDestructiveAlert = false },
-            screenBackdrop = glassBackdrop,
+            screenBackdrop = modalBackdrop,
             title = "Delete Preset?",
             message = "This removes your saved glass configuration from this device.",
             confirmText = "Delete",
@@ -274,7 +274,7 @@ private fun RowScope.IosTabItem(index: Int, icon: ImageVector, label: String, on
 
 @Composable
 private fun CatalogTabContent(
-    backdrop: PrismalBackdrop,
+    backdrop: PrismalGlassLayer,
     glassParams: GlassPlaygroundParams,
     luminance: () -> Float,
     toggleOn: Boolean,

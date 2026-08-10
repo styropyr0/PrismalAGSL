@@ -28,12 +28,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.styropyr0.prismal.PrismalBackdrop
+import com.styropyr0.prismal.sources.PrismalGlassLayer
 import kotlin.math.roundToInt
 
 @Composable
 fun ProfileTabContent(
-    backdrop: PrismalBackdrop,
+    backdrop: PrismalGlassLayer,
     glassParams: GlassPlaygroundParams,
     luminance: () -> Float,
     modifier: Modifier = Modifier,
