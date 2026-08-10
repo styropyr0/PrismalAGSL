@@ -339,7 +339,7 @@ private fun CatalogTabContent(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            IosSectionFooter("Swipe horizontally — the liquid glass droplet stays put while items lock in.")
+            IosSectionFooter("Swipe horizontally to switch between options")
         }
 
         item {
