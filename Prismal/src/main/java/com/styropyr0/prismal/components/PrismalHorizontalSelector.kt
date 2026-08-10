@@ -46,7 +46,6 @@ import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.lerp
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.PrismalGlassEffectProvider
-import com.styropyr0.prismal.depth.PrismalDepthInset
 import com.styropyr0.prismal.depth.PrismalDepthShadow
 import com.styropyr0.prismal.drawPrismalGlass
 import com.styropyr0.prismal.effects.applyPrismalGlassEffects
@@ -439,12 +438,6 @@ private fun PrismalHorizontalSelectorBody(
                         },
                         specular = specular,
                         depthShadow = { PrismalDepthShadow() },
-                        depthInset = {
-                            PrismalDepthInset(
-                                radius = 8.dp,
-                                alpha = 1f,
-                            )
-                        },
                         onDrawSurface = {
                             val currentLuminance = luminance().coerceIn(0f, 1f)
                             if (onDrawDropletSurface != null) {
