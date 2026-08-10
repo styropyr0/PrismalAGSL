@@ -44,6 +44,7 @@ Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass sur
 - [Adaptive luminance](#adaptive-luminance)
 - [Interactive primitives](#interactive-primitives)
 - [Bottom tab bar](#bottom-tab-bar)
+- [Horizontal selector](#horizontal-selector)
 - [Demo app](#demo-app)
 - [Project structure](#project-structure)
 - [License](#license)
@@ -64,11 +65,13 @@ Both libraries share the same Prismal glass aesthetic (blur, refraction, interac
 
 ---
 
+## Features
+
 - **Backdrop-driven glass** — sample wallpaper, scrollable content, or other composables through frosted panels
 - **Three automatic pipeline tiers** — Legacy frost (API 25–30), `RenderEffect` blur (API 31–32), full AGSL liquid glass (API 33+)
 - **Edge lens refraction** — rounded-rectangle SDF shaders with optional chromatic aberration
 - **Specular, depth shadow, and depth inset** — decorative layers on top of the refracted backdrop
-- **Ready-made components** — buttons, toggles, sliders, progress bars, gradient panels, and an iOS-style bottom tab bar with a draggable selection droplet
+- **Ready-made components** — buttons, toggles, sliders, progress bars, gradient panels, horizontal selector, and an iOS-style bottom tab bar with a draggable selection droplet
 - **Custom glass builder** — `drawPrismalGlass`, `PrismalLiquidGlass`, and composable effect helpers
 - **Adaptive luminance** — optional brightness sampling to tune blur and foreground contrast against the backdrop
 - **Press interactions** — ripple, scale, and spring motion shared across components
@@ -298,6 +301,7 @@ All components take a `backdrop: PrismalBackdrop` and degrade effects automatica
 | `PrismalGlassSlider` | `…components` | Track + refracting thumb |
 | `PrismalGlassProgressBar` | `…components` | Determinate or indeterminate track |
 | `PrismalGradientGlassPanel` | `…components` | Vertical gradient blur / refraction panel |
+| `PrismalHorizontalSelector` | `…components` | iOS-style camera-mode picker with fixed liquid droplet |
 | `PrismalGlassBottomTabs` | `…components` | iOS-style tab bar with sliding liquid droplet |
 | `PrismalGlassBottomTab` | `…components` | Single tab item for the bottom bar |
 
@@ -369,7 +373,7 @@ Modifier.drawPrismalGlass(
             blurRadiusPx = with(density) { 8.dp.toPx() },
             refractionHeightPx = with(density) { 12.dp.toPx() },
             refractionAmountPx = with(density) { 24.dp.toPx() },
-            chromaticAberration = true
+            chromaticAberration = 0.2f
         )
     },
     specular = { PrismalSpecular.Default },
@@ -389,7 +393,7 @@ Effects are configured inside a `PrismalGlassEffectProvider` receiver block.
 |----------|-------------|
 | `applyPrismalGlassEffects(...)` | Standard blur + vibrancy + lens chain |
 | `prismalBlur(radiusPx)` | Gaussian backdrop blur (API 31+; frost fallback on Legacy) |
-| `prismalLens(...)` | Edge refraction shader (API 33+, requires rounded shape) |
+| `prismalLens(...)` | Edge refraction shader (API 33+, requires rounded shape). `chromaticAberration` is `[0, 1]` (`0.2` = 20% dispersion) |
 | `prismalGradientGlass(...)` | Vertical gradient blur panel (API 33+) |
 | `vibrancy()` | iOS-like saturation / brightness boost |
 | `colorControls(brightness, contrast, saturation)` | Manual color grading |
@@ -510,14 +514,94 @@ private fun RowScope.TabItem(index: Int, icon: ImageVector, label: String) {
 
 ---
 
+## Horizontal selector
+
+`PrismalHorizontalSelector` is an iOS-style horizontal picker (camera mode switcher): a fixed liquid-glass droplet stays centered while items scroll underneath and snap into place on release.
+
+### Text labels
+
+Widths are measured synchronously with `TextMeasurer` — no layout flicker.
+
+```kotlin
+import com.styropyr0.prismal.components.PrismalHorizontalSelector
+import com.styropyr0.prismal.specular.PrismalSpecular
+
+var selectedMode by remember { mutableIntStateOf(1) }
+val modes = listOf("VIDEO", "PHOTO", "PORTRAIT", "SLO-MO")
+
+PrismalHorizontalSelector(
+    labels = modes,
+    selectedIndex = selectedMode,
+    onSelected = { selectedMode = it },
+    backdrop = backdrop,
+    textStyle = MaterialTheme.typography.labelMedium,
+    textColor = MaterialTheme.colorScheme.onSurface,
+    adaptiveLuminance = true,
+    luminance = { luminanceState.luminance },
+    specular = { PrismalSpecular.Default },
+    chromaticAberration = 0.2f, // 20% RGB dispersion on the droplet lens
+    modifier = Modifier.fillMaxWidth(),
+)
+```
+
+### Custom composables
+
+Pass any item content; widths are measured once before layout.
+
+```kotlin
+PrismalHorizontalSelector(
+    itemCount = items.size,
+    selectedIndex = selectedIndex,
+    onSelected = { selectedIndex = it },
+    backdrop = backdrop,
+    chromaticAberration = 0.2f,
+) { index, focus ->
+    // focus is 1f when centered, 0f when far away — use for alpha/scale, not layout changes
+    Icon(items[index], contentDescription = null)
+}
+```
+
+### Key parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `labels` / `itemCount` | — | String list overload or item count for composable overload |
+| `selectedIndex` | — | Currently selected item |
+| `onSelected` | — | Called when scrolling settles on a new item |
+| `backdrop` | — | Backdrop sampled through the droplet glass |
+| `adaptiveLuminance` | `false` | Tune droplet blur/frost from [luminance](#adaptive-luminance) |
+| `luminance` | `{ 0.5f }` | Normalized backdrop brightness in `[0, 1]` |
+| `specular` | `PrismalSpecular.Default` | Specular highlight on the droplet |
+| `chromaticAberration` | `0.2f` | Droplet lens RGB dispersion in `[0, 1]` (`0.2` = 20%) |
+| `boldWhenFocused` | `true` | Text overload only — bold the centered label |
+| `dropletEffects` | `null` | Custom effect block; replaces the default lens stack when set |
+| `itemSpacing` | `6.dp` | Gap between items |
+| `itemPadding` | `14.dp` | Horizontal padding included in each item width |
+| `dropletExtraWidth` | `10.dp` | Extra width added around the focused item for the capsule |
+
+### Behavior
+
+| Feature | Description |
+|---------|-------------|
+| Fixed droplet | Centered `PrismalCapsule` glass with bottom-tab-style lens refraction |
+| Scrolling items | Horizontal scroll with spring snap on release |
+| Focus animation | Centered item scales up (0.9→1.0) and fades in (38%→100%) |
+| Bold center label | Text overload bolds the focused label (`boldWhenFocused = false` to disable) |
+| Squish on drag | Droplet stretches slightly while scrolling, springs back on snap |
+| Chromatic aberration | Configurable RGB dispersion on the droplet lens (API 33+) |
+
+---
+
 ## Demo app
 
 The `:app` module in this repository is a catalog playground (not published to JitPack). It demonstrates:
 
 - iOS-style grouped settings layout
 - Glass buttons, toggles, sliders, and progress bars
+- Horizontal selector (camera-mode style picker)
 - Gradient glass panel and profile avatar
 - Bottom tab bar with customizable droplet tint
+- Custom wallpaper picker with persistence across app restarts
 - Live glass parameter tuning in Settings
 
 Run locally:
@@ -532,7 +616,7 @@ Run locally:
 
 ```
 Prismal/
-├── components/          # Ready-made UI (buttons, tabs, slider, …)
+├── components/          # Ready-made UI (buttons, tabs, slider, horizontal selector, …)
 ├── depth/               # Depth shadow and inset modifiers
 ├── effects/             # Blur, lens, gradient glass, color controls
 ├── interactive/         # Press ripple, spring motion, drag gestures
