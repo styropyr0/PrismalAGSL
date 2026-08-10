@@ -108,6 +108,7 @@ fun PrismalHorizontalSelector(
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
     boldWhenFocused: Boolean = true,
+    chromaticAberration: Float = 3f,
 ) {
     if (labels.isEmpty()) return
 
@@ -139,6 +140,7 @@ fun PrismalHorizontalSelector(
         specular = specular,
         dropletEffects = dropletEffects,
         onDrawDropletSurface = onDrawDropletSurface,
+        chromaticAberration = chromaticAberration,
     ) { index, focus ->
         val fontWeight = if (boldWhenFocused && focus > 0.88f) {
             FontWeight.Bold
@@ -176,6 +178,7 @@ fun PrismalHorizontalSelector(
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
+    chromaticAberration: Float = 0.2f,
     itemContent: @Composable (index: Int, focus: Float) -> Unit,
 ) {
     if (itemCount <= 0) return
@@ -217,6 +220,7 @@ fun PrismalHorizontalSelector(
                 specular = specular,
                 dropletEffects = dropletEffects,
                 onDrawDropletSurface = onDrawDropletSurface,
+                chromaticAberration = chromaticAberration,
                 itemContent = itemContent,
             )
         }.first().measure(constraints)
@@ -242,8 +246,10 @@ private fun PrismalHorizontalSelectorBody(
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
+    chromaticAberration: Float = 0.2f,
     itemContent: @Composable (index: Int, focus: Float) -> Unit,
 ) {
+    val dropletChromaticAberration = chromaticAberration.coerceIn(0f, 1f)
     val density = LocalDensity.current
     val isLightTheme = !isSystemInDarkTheme()
     val scope = rememberCoroutineScope()
@@ -427,7 +433,7 @@ private fun PrismalHorizontalSelectorBody(
                                 prismalLens(
                                     refractionHeight = with(density) { 10.dp.toPx() },
                                     refractionAmount = with(density) { 14.dp.toPx() },
-                                    chromaticAberration = 1f,
+                                    chromaticAberration = dropletChromaticAberration,
                                 )
                             }
                         },
