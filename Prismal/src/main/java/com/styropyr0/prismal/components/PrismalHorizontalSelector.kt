@@ -130,7 +130,6 @@ fun PrismalHorizontalSelector(
         itemSpacing = itemSpacing,
         dropletExtraWidth = dropletExtraWidth,
         dropletPadding = dropletPadding,
-        adaptiveLuminance = adaptiveLuminance,
         luminance = luminance,
         specular = specular,
         dropletEffects = dropletEffects,
@@ -208,7 +207,6 @@ fun PrismalHorizontalSelector(
                 itemSpacing = itemSpacing,
                 dropletExtraWidth = dropletExtraWidth,
                 dropletPadding = dropletPadding,
-                adaptiveLuminance = adaptiveLuminance,
                 luminance = luminance,
                 specular = specular,
                 dropletEffects = dropletEffects,
@@ -235,7 +233,6 @@ private fun PrismalHorizontalSelectorBody(
     itemSpacing: Dp = SelectorItemSpacing,
     dropletExtraWidth: Dp = SelectorDropletExtraWidth,
     dropletPadding: Dp = SelectorDropletPadding,
-    adaptiveLuminance: Boolean = false,
     luminance: () -> Float = { 0.5f },
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
@@ -409,7 +406,7 @@ private fun PrismalHorizontalSelectorBody(
                             } else {
                                 applyPrismalGlassEffects(
                                     density = density,
-                                    adaptiveLuminance = adaptiveLuminance,
+                                    adaptiveLuminance = false,
                                     luminance = currentLuminance,
                                     blurRadiusPx = with(density) { 0.dp.toPx() },
                                     refractionHeightPx = 0f,
@@ -433,19 +430,8 @@ private fun PrismalHorizontalSelectorBody(
                         },
                         onDrawSurface = {
                             val currentLuminance = luminance().coerceIn(0f, 1f)
-                            if (onDrawDropletSurface != null) {
-                                onDrawDropletSurface(currentLuminance)
-                            } else if (adaptiveLuminance) {
-                                val frostTint = if (currentLuminance > 0.55f) {
-                                    Color.Black.copy(alpha = lerp(0.07f, 0.13f, currentLuminance))
-                                } else {
-                                    Color.White.copy(alpha = lerp(0.13f, 0.07f, 1f - currentLuminance))
-                                }
-                                drawRect(frostTint)
-                                drawRect(Color.Black.copy(alpha = 0.03f))
-                            } else {
-                                drawRect(Color.Black.copy(alpha = 0.03f))
-                            }
+                            if (onDrawDropletSurface != null) onDrawDropletSurface(currentLuminance)
+                            else drawRect(Color.Black.copy(alpha = 0.03f))
                         },
                     ),
             )
