@@ -146,6 +146,8 @@ internal class PrismalDepthInsetNode(
             graphicsContext.releaseGraphicsLayer(layer)
             shadowLayer = null
         }
+        prevRadius = Float.NaN
+        clipPath = null
     }
 
     private fun DrawScope.configurePaint(shadow: PrismalDepthInset) {
