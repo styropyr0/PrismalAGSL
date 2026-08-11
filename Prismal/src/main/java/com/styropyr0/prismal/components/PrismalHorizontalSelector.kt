@@ -1,7 +1,6 @@
 package com.styropyr0.prismal.components
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.horizontalScroll
@@ -18,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,7 +40,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.lerp
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.PrismalGlassEffectProvider
@@ -62,7 +59,7 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private val SelectorHeight = 52.dp
-private val SelectorDropletHeight = 40.dp
+private val SelectorDropletHeight = 80.dp
 private val SelectorItemPadding = 14.dp
 private val SelectorItemSpacing = 6.dp
 private val SelectorDropletExtraWidth = 10.dp
@@ -73,14 +70,9 @@ private val SelectorSnapSpring = spring<Float>(
     stiffness = 580f,
 )
 
-private val SelectorDropletWidthSpring = spring<Dp>(
-    dampingRatio = 0.86f,
-    stiffness = 520f,
-)
-
-private val SelectorDropletSquishSpring = spring<Float>(
-    dampingRatio = 0.62f,
-    stiffness = 380f,
+private val SelectorDropletWidthSpring = spring<Float>(
+    dampingRatio = 0.56f,
+    stiffness = 280f,
 )
 
 private enum class SelectorSubcomposeSlot {
@@ -258,8 +250,6 @@ private fun PrismalHorizontalSelectorBody(
     val scrollState = rememberScrollState()
     val labelsBackdrop = rememberPrismalGlassLayer()
     val dropletBackdrop = rememberPrismalMergedSource(backdrop, labelsBackdrop)
-    val dropletStretchX = remember { Animatable(1f) }
-    val dropletStretchY = remember { Animatable(1f) }
     val onSelectedState = rememberUpdatedState(onSelected)
 
     labelsBackdrop.readSamplingState()
@@ -302,7 +292,6 @@ private fun PrismalHorizontalSelectorBody(
         var focusedIndex by remember(itemCount) { mutableIntStateOf(selectedIndex.coerceIn(0, itemCount - 1)) }
         var lockedIndex by remember(itemCount) { mutableIntStateOf(selectedIndex.coerceIn(0, itemCount - 1)) }
         var isScrolling by remember { mutableIntStateOf(0) }
-        var lastScrollPx by remember { mutableFloatStateOf(0f) }
 
         suspend fun snapToIndex(index: Int) {
             val targetOffset = snapOffsetsPx.getOrElse(index) { 0 }
@@ -325,23 +314,6 @@ private fun PrismalHorizontalSelectorBody(
         }
 
         LaunchedEffect(scrollState) {
-            snapshotFlow { scrollState.value }
-                .collect { scrollPx ->
-                    val delta = scrollPx - lastScrollPx
-                    lastScrollPx = scrollPx.toFloat()
-                    focusedIndex = indexForScroll(scrollPx)
-
-                    if (isScrolling == 1) {
-                        val squish = (delta / 40f).fastCoerceIn(-0.18f, 0.18f)
-                        scope.launch {
-                            dropletStretchX.animateTo(1f - squish * 0.75f, SelectorDropletSquishSpring)
-                            dropletStretchY.animateTo(1f + squish * 0.35f, SelectorDropletSquishSpring)
-                        }
-                    }
-                }
-        }
-
-        LaunchedEffect(scrollState) {
             snapshotFlow { scrollState.isScrollInProgress }
                 .distinctUntilChanged()
                 .collect { inProgress ->
@@ -349,8 +321,6 @@ private fun PrismalHorizontalSelectorBody(
                         isScrolling = 1
                     } else {
                         scope.launch {
-                            dropletStretchX.animateTo(1f, SelectorDropletSquishSpring)
-                            dropletStretchY.animateTo(1f, SelectorDropletSquishSpring)
                             snapToIndex(indexForScroll(scrollState.value))
                             isScrolling = 0
                         }
@@ -358,14 +328,27 @@ private fun PrismalHorizontalSelectorBody(
                 }
         }
 
+        LaunchedEffect(scrollState) {
+            snapshotFlow { scrollState.value }
+                .collect { scrollPx ->
+                    focusedIndex = indexForScroll(scrollPx)
+                }
+        }
+
+        val dropletHorizontalInsetPx = with(density) { (dropletExtraWidth + dropletPadding * 2).toPx() }
         val dropletWidthIndex = if (isScrolling == 1) focusedIndex else lockedIndex
-        val dropletWidth by animateDpAsState(
-            targetValue = with(density) { itemWidthsPx[dropletWidthIndex].toDp() } +
-                dropletExtraWidth +
-                dropletPadding * 2,
-            animationSpec = SelectorDropletWidthSpring,
-            label = "selectorDropletWidth",
-        )
+        val targetDropletWidthPx = itemWidthsPx[dropletWidthIndex] + dropletHorizontalInsetPx
+        val dropletWidthAnim = remember(itemWidthsPx, dropletHorizontalInsetPx) {
+            Animatable(targetDropletWidthPx)
+        }
+
+        LaunchedEffect(targetDropletWidthPx) {
+            dropletWidthAnim.animateTo(targetDropletWidthPx, SelectorDropletWidthSpring)
+        }
+
+        val dropletWidth = with(density) { dropletWidthAnim.value.toDp() }
+        val dropletVolumeScaleY =
+            (targetDropletWidthPx / dropletWidthAnim.value).coerceIn(0.96f, 1.04f)
 
         Box(Modifier.matchParentSize()) {
             Row(
@@ -414,8 +397,7 @@ private fun PrismalHorizontalSelectorBody(
                     .width(dropletWidth)
                     .height(SelectorDropletHeight + dropletPadding * 2)
                     .graphicsLayer {
-                        scaleX = dropletStretchX.value
-                        scaleY = dropletStretchY.value
+                        scaleY = dropletVolumeScaleY
                     }
                     .drawPrismalGlass(
                         backdrop = dropletBackdrop,
