@@ -66,6 +66,7 @@ private val SelectorDropletHeight = 40.dp
 private val SelectorItemPadding = 14.dp
 private val SelectorItemSpacing = 6.dp
 private val SelectorDropletExtraWidth = 10.dp
+private val SelectorDropletPadding = 5.dp
 
 private val SelectorSnapSpring = spring<Float>(
     dampingRatio = 0.82f,
@@ -102,6 +103,7 @@ fun PrismalHorizontalSelector(
     itemSpacing: Dp = SelectorItemSpacing,
     itemPadding: Dp = SelectorItemPadding,
     dropletExtraWidth: Dp = SelectorDropletExtraWidth,
+    dropletPadding: Dp = SelectorDropletPadding,
     adaptiveLuminance: Boolean = false,
     luminance: () -> Float = { 0.5f },
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
@@ -135,6 +137,7 @@ fun PrismalHorizontalSelector(
         modifier = modifier,
         itemSpacing = itemSpacing,
         dropletExtraWidth = dropletExtraWidth,
+        dropletPadding = dropletPadding,
         adaptiveLuminance = adaptiveLuminance,
         luminance = luminance,
         specular = specular,
@@ -169,6 +172,7 @@ fun PrismalHorizontalSelector(
     itemSpacing: Dp = SelectorItemSpacing,
     itemPadding: Dp = SelectorItemPadding,
     dropletExtraWidth: Dp = SelectorDropletExtraWidth,
+    dropletPadding: Dp = SelectorDropletPadding,
     adaptiveLuminance: Boolean = false,
     luminance: () -> Float = { 0.5f },
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
@@ -211,6 +215,7 @@ fun PrismalHorizontalSelector(
                 backdrop = backdrop,
                 itemSpacing = itemSpacing,
                 dropletExtraWidth = dropletExtraWidth,
+                dropletPadding = dropletPadding,
                 adaptiveLuminance = adaptiveLuminance,
                 luminance = luminance,
                 specular = specular,
@@ -237,6 +242,7 @@ private fun PrismalHorizontalSelectorBody(
     modifier: Modifier = Modifier,
     itemSpacing: Dp = SelectorItemSpacing,
     dropletExtraWidth: Dp = SelectorDropletExtraWidth,
+    dropletPadding: Dp = SelectorDropletPadding,
     adaptiveLuminance: Boolean = false,
     luminance: () -> Float = { 0.5f },
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
@@ -354,7 +360,9 @@ private fun PrismalHorizontalSelectorBody(
 
         val dropletWidthIndex = if (isScrolling == 1) focusedIndex else lockedIndex
         val dropletWidth by animateDpAsState(
-            targetValue = with(density) { itemWidthsPx[dropletWidthIndex].toDp() } + dropletExtraWidth,
+            targetValue = with(density) { itemWidthsPx[dropletWidthIndex].toDp() } +
+                dropletExtraWidth +
+                dropletPadding * 2,
             animationSpec = SelectorDropletWidthSpring,
             label = "selectorDropletWidth",
         )
@@ -404,7 +412,7 @@ private fun PrismalHorizontalSelectorBody(
                 Modifier
                     .align(Alignment.Center)
                     .width(dropletWidth)
-                    .height(SelectorDropletHeight)
+                    .height(SelectorDropletHeight + dropletPadding * 2)
                     .graphicsLayer {
                         scaleX = dropletStretchX.value
                         scaleY = dropletStretchY.value

@@ -91,8 +91,8 @@ object IosTheme {
 
     val horizontalSelectorLabel: TextStyle
         @Composable get() = caption1.copy(
-            fontSize = 14.sp,
-            lineHeight = 18.sp,
+            fontSize = 16.sp,
+            lineHeight = 24.sp,
             fontWeight = FontWeight.SemiBold,
         )
 
