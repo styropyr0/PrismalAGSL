@@ -58,8 +58,8 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-private val SelectorHeight = 52.dp
-private val SelectorDropletHeight = 80.dp
+private val SelectorHeight = 70.dp
+private val SelectorDropletHeight = 45.dp
 private val SelectorItemPadding = 14.dp
 private val SelectorItemSpacing = 6.dp
 private val SelectorDropletExtraWidth = 10.dp
@@ -96,13 +96,12 @@ fun PrismalHorizontalSelector(
     itemPadding: Dp = SelectorItemPadding,
     dropletExtraWidth: Dp = SelectorDropletExtraWidth,
     dropletPadding: Dp = SelectorDropletPadding,
-    adaptiveLuminance: Boolean = false,
     luminance: () -> Float = { 0.5f },
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
     boldWhenFocused: Boolean = true,
-    chromaticAberration: Float = 3f,
+    chromaticAberration: Float = 0.3f,
 ) {
     if (labels.isEmpty()) return
 
@@ -164,7 +163,6 @@ fun PrismalHorizontalSelector(
     itemPadding: Dp = SelectorItemPadding,
     dropletExtraWidth: Dp = SelectorDropletExtraWidth,
     dropletPadding: Dp = SelectorDropletPadding,
-    adaptiveLuminance: Boolean = false,
     luminance: () -> Float = { 0.5f },
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
@@ -363,10 +361,8 @@ private fun PrismalHorizontalSelectorBody(
                         Spacer(Modifier.width(itemSpacing))
                     }
 
-                    val itemCenterOnScreen =
-                        itemCenterInContent(index) - scrollState.value.toFloat()
-                    val distanceFromCenter =
-                        abs(itemCenterOnScreen - viewportWidthPx / 2f) / (viewportWidthPx / 2f)
+                    val itemCenterOnScreen = itemCenterInContent(index) - scrollState.value.toFloat()
+                    val distanceFromCenter = abs(itemCenterOnScreen - viewportWidthPx / 2f) / (viewportWidthPx / 2f)
                     val focus = (1f - distanceFromCenter.coerceIn(0f, 1f))
                     val scale = lerp(0.9f, 1f, focus)
                     val alpha = lerp(0.38f, 1f, focus)
@@ -414,8 +410,8 @@ private fun PrismalHorizontalSelectorBody(
                                     useVibrancy = true,
                                 )
                                 prismalLens(
-                                    refractionHeight = with(density) { 10.dp.toPx() },
-                                    refractionAmount = with(density) { 14.dp.toPx() },
+                                    refractionHeight = with(density) { 25.dp.toPx() },
+                                    refractionAmount = with(density) { 16.dp.toPx() },
                                     chromaticAberration = dropletChromaticAberration,
                                 )
                             }
