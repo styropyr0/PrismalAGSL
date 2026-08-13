@@ -50,6 +50,7 @@ import com.styropyr0.prismal.components.PrismalGlassBottomTab
 import com.styropyr0.prismal.components.PrismalGlassBottomTabs
 import com.styropyr0.prismal.components.PrismalGlassSlider
 import com.styropyr0.prismal.components.PrismalHorizontalSelector
+import com.styropyr0.prismal.components.PrismalRulerSelector
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
 import com.styropyr0.prismal.shapes.PrismalCapsule
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
@@ -81,6 +82,7 @@ fun CatalogPlaygroundScreen() {
     var showAlert by remember { mutableStateOf(false) }
     var showDestructiveAlert by remember { mutableStateOf(false) }
     var cameraModeIndex by remember { mutableIntStateOf(1) }
+    var rulerValueMm by remember { mutableIntStateOf(25) }
 
     val context = LocalContext.current
 
@@ -174,6 +176,8 @@ fun CatalogPlaygroundScreen() {
                         onShowDestructiveAlert = { showDestructiveAlert = true },
                         cameraModeIndex = cameraModeIndex,
                         onCameraModeChange = { cameraModeIndex = it },
+                        rulerValueMm = rulerValueMm,
+                        onRulerValueChange = { rulerValueMm = it },
                         modifier = Modifier.padding(innerPadding),
                         contentPadding = contentPadding
                     )
@@ -301,6 +305,8 @@ private fun CatalogTabContent(
     onShowDestructiveAlert: () -> Unit,
     cameraModeIndex: Int,
     onCameraModeChange: (Int) -> Unit,
+    rulerValueMm: Int,
+    onRulerValueChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
@@ -339,6 +345,33 @@ private fun CatalogTabContent(
                 )
             }
             IosSectionFooter("Swipe horizontally to switch between options")
+        }
+
+        item {
+            IosSectionHeader("Ruler Selector")
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = IosLayout.screenHorizontal, vertical = 10.dp)
+            ) {
+                PrismalRulerSelector(
+                    value = rulerValueMm,
+                    onValueChange = onRulerValueChange,
+                    valueRange = 0..100,
+                    step = 1,
+                    majorTickEvery = 5,
+                    valueLabel = { "${it}mm" },
+                    backdrop = backdrop,
+                    textStyle = IosTheme.horizontalSelectorLabel,
+                    textColor = IosTheme.colors.label,
+                    tickColor = IosTheme.colors.label.copy(alpha = 0.55f),
+                    chromaticAberration = 0.8f,
+                    luminance = luminance,
+                    specular = glassParams.specularProvider(),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            IosSectionFooter("Swipe the ticks — the droplet value snaps as you scroll")
         }
 
         item {
