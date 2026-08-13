@@ -192,7 +192,7 @@ fun PrismalGlassBottomTabs(
 
         CompositionLocalProvider(
             LocalPrismalBottomTabScale provides {
-                lerp(1f, 1.2f, dampedDragAnimation.pressProgress)
+                lerp(1f, 1.05f, dampedDragAnimation.pressProgress)
             },
             LocalPrismalBottomTabHighlightedIndex provides { highlightedTabIndex }
         ) {

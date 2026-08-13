@@ -332,7 +332,7 @@ private fun CatalogTabContent(
                     backdrop = backdrop,
                     textStyle = IosTheme.horizontalSelectorLabel,
                     textColor = IosTheme.colors.label,
-                    chromaticAberration = 0.5f,
+                    chromaticAberration = 0.8f,
                     luminance = luminance,
                     specular = glassParams.specularProvider(),
                     modifier = Modifier.fillMaxWidth(),
