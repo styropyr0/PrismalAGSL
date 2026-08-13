@@ -47,6 +47,7 @@ Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass sur
 - [Interactive primitives](#interactive-primitives)
 - [Bottom tab bar](#bottom-tab-bar)
 - [Horizontal selector](#horizontal-selector)
+- [Ruler selector](#ruler-selector)
 - [Demo app](#demo-app)
 - [Project structure](#project-structure)
 - [License](#license)
@@ -73,7 +74,7 @@ Both libraries share the same Prismal glass aesthetic (blur, refraction, interac
 - **Three automatic pipeline tiers** — Legacy frost (API 25–30), `RenderEffect` blur (API 31–32), full AGSL liquid glass (API 33+)
 - **Edge lens refraction** — rounded-rectangle SDF shaders with optional chromatic aberration
 - **Specular, depth shadow, and depth inset** — decorative layers on top of the refracted backdrop
-- **Ready-made components** — buttons, toggles, sliders, progress bars, gradient panels, horizontal selector, and an iOS-style bottom tab bar with a draggable selection droplet
+- **Ready-made components** — buttons, toggles, sliders, progress bars, gradient panels, horizontal selector, ruler selector, and an iOS-style bottom tab bar with a draggable selection droplet
 - **Custom glass builder** — `drawPrismalGlass`, `PrismalLiquidGlass`, and composable effect helpers
 - **Adaptive luminance** — optional brightness sampling to tune blur and foreground contrast against the backdrop
 - **Press interactions** — ripple, scale, and spring motion shared across components
@@ -306,6 +307,7 @@ All components take a `backdrop: PrismalBackdrop` and degrade effects automatica
 | `PrismalGlassProgressBar` | `…components` | Determinate or indeterminate track |
 | `PrismalGradientGlassPanel` | `…components` | Vertical gradient blur / refraction panel |
 | `PrismalHorizontalSelector` | `…components` | iOS-style camera-mode picker with fixed liquid droplet |
+| `PrismalRulerSelector` | `…components` | Ruler / tick picker with value shown inside a fixed liquid droplet |
 | `PrismalGlassBottomTabs` | `…components` | iOS-style tab bar with sliding liquid droplet |
 | `PrismalGlassBottomTab` | `…components` | Single tab item for the bottom bar |
 
@@ -540,7 +542,6 @@ PrismalHorizontalSelector(
     backdrop = backdrop,
     textStyle = MaterialTheme.typography.labelMedium,
     textColor = MaterialTheme.colorScheme.onSurface,
-    adaptiveLuminance = true,
     luminance = { luminanceState.luminance },
     specular = { PrismalSpecular.Default },
     chromaticAberration = 0.2f, // 20% RGB dispersion on the droplet lens
@@ -573,7 +574,6 @@ PrismalHorizontalSelector(
 | `selectedIndex` | — | Currently selected item |
 | `onSelected` | — | Called when scrolling settles on a new item |
 | `backdrop` | — | Backdrop sampled through the droplet glass |
-| `adaptiveLuminance` | `false` | Tune droplet blur/frost from [luminance](#adaptive-luminance) |
 | `luminance` | `{ 0.5f }` | Normalized backdrop brightness in `[0, 1]` |
 | `specular` | `PrismalSpecular.Default` | Specular highlight on the droplet |
 | `chromaticAberration` | `0.2f` | Droplet lens RGB dispersion in `[0, 1]` (`0.2` = 20%) |
@@ -596,6 +596,72 @@ PrismalHorizontalSelector(
 
 ---
 
+## Ruler selector
+
+`PrismalRulerSelector` is a measurement-style horizontal picker: a fixed liquid-glass droplet stays centered while tick marks scroll underneath. The selected value is rendered **inside** the droplet. Ticks pass through the glass for refraction and leave a gap only under the label:
+
+`||||||| <value> |||||||`
+
+```kotlin
+import com.styropyr0.prismal.components.PrismalRulerSelector
+import com.styropyr0.prismal.specular.PrismalSpecular
+
+var lengthMm by remember { mutableIntStateOf(25) }
+
+PrismalRulerSelector(
+    value = lengthMm,
+    onValueChange = { lengthMm = it },
+    valueRange = 0..100,
+    step = 1,
+    majorTickEvery = 5,
+    valueLabel = { "${it}mm" },
+    backdrop = backdrop,
+    textStyle = MaterialTheme.typography.labelMedium,
+    textColor = MaterialTheme.colorScheme.onSurface,
+    tickColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+    luminance = { luminanceState.luminance },
+    specular = { PrismalSpecular.Default },
+    chromaticAberration = 0.3f,
+    modifier = Modifier.fillMaxWidth(),
+)
+```
+
+### Key parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `value` | — | Currently selected integer value |
+| `onValueChange` | — | Called when scrolling settles on a new value |
+| `valueRange` | — | Inclusive range of selectable values |
+| `step` | `1` | Increment between consecutive values |
+| `majorTickEvery` | `5` | Draw a taller tick every N steps |
+| `tickSpacing` | `10.dp` | Horizontal distance between consecutive ticks |
+| `valueLabel` | `{ it.toString() }` | Formats the value shown inside the droplet |
+| `textStyle` / `textColor` | — | Droplet label typography and color |
+| `tickColor` | `textColor` at 55% alpha | Color of minor and major ticks |
+| `backdrop` | — | Backdrop sampled through the droplet glass |
+| `luminance` | `{ 0.5f }` | Normalized backdrop brightness in `[0, 1]` |
+| `specular` | `PrismalSpecular.Default` | Specular highlight on the droplet |
+| `chromaticAberration` | `0.3f` | Droplet lens RGB dispersion in `[0, 1]` |
+| `dropletEffects` | `null` | Custom effect block; replaces the default lens stack when set |
+| `dropletExtraWidth` | `50.dp` | Extra horizontal padding around the widest label |
+| `dropletPadding` | `5.dp` | Outer padding around the droplet capsule |
+
+### Behavior
+
+| Feature | Description |
+|---------|-------------|
+| Fixed droplet | Centered `PrismalCapsule` glass with the live value drawn inside |
+| Scrolling ticks | Horizontal tick strip with spring snap on release |
+| Stable droplet width | Sized once to the widest label in range — no resize jitter while sliding |
+| Tabular figures | Uses `tnum` so digit changes do not shift the label |
+| Tick gap under label | Ticks refract through the droplet edges but clear space under the value text |
+| Major / minor ticks | Shorter ticks by default; taller ticks every `majorTickEvery` steps |
+| Edge fade | Ticks fade toward the viewport edges for depth |
+| Chromatic aberration | Configurable RGB dispersion on the droplet lens (API 33+) |
+
+---
+
 ## Demo app
 
 The `:app` module in this repository is a catalog playground (not published to JitPack). It demonstrates:
@@ -603,6 +669,7 @@ The `:app` module in this repository is a catalog playground (not published to J
 - iOS-style grouped settings layout
 - Glass buttons, toggles, sliders, and progress bars
 - Horizontal selector (camera-mode style picker)
+- Ruler selector (tick / measurement picker)
 - Gradient glass panel and profile avatar
 - Bottom tab bar with customizable droplet tint
 - Custom wallpaper picker with persistence across app restarts
@@ -620,7 +687,7 @@ Run locally:
 
 ```
 Prismal/
-├── components/          # Ready-made UI (buttons, tabs, slider, horizontal selector, …)
+├── components/          # Ready-made UI (buttons, tabs, slider, selectors, …)
 ├── depth/               # Depth shadow and inset modifiers
 ├── effects/             # Blur, lens, gradient glass, color controls
 ├── interactive/         # Press ripple, spring motion, drag gestures
