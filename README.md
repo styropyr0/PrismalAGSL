@@ -113,7 +113,9 @@ AGSL shader assets are loaded once at startup via AndroidX App Startup (`Prismal
 | **minSdk** | 25 (Android 7.0) |
 | **compileSdk** | 37+ recommended |
 | **UI toolkit** | Jetpack Compose (library uses Compose BOM) |
-| **Kotlin** | 2.x with Compose Compiler plugin |
+| **Kotlin** | **2.2+** (Compose Compiler plugin required) |
+
+Prismal is compiled and released with **Kotlin 2.2.x**. Apps on an older Kotlin compiler cannot consume a library built with a newer one (Kotlin metadata is not forward-compatible that way). If you hit “incompatible Kotlin metadata” errors, upgrade the app’s Kotlin Gradle / Compose Compiler plugin to **2.2 or newer**.
 
 The library depends on Compose Foundation and UI. Your app module must enable the Compose compiler:
 

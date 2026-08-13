@@ -40,12 +40,6 @@ android {
     }
 }
 
-composeCompiler {
-    // AGP 9 resolves compose-group-mapping at Kotlin 2.2.x, but the artifact is only
-    // published for Kotlin 2.4+. Disabling is behavior-neutral (Compose stack trace only).
-    includeComposeMappingFile.set(false)
-}
-
 dependencies {
     implementation(project(":Prismal"))
     val composeBom = platform(libs.androidx.compose.bom)

@@ -9,7 +9,7 @@ material = "1.14.0"
 activityKtx = "1.13.0"
 constraintlayout = "2.2.2"
 composeBom = "2026.06.01"
-kotlin = "2.4.10"
+kotlin = "2.2.21"
 coil = "2.7.0"
 startup = "1.2.0"
 
