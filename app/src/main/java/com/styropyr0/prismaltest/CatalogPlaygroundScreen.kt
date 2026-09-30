@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -49,9 +50,17 @@ import com.styropyr0.prismal.components.LocalPrismalBottomTabHighlightedIndex
 import com.styropyr0.prismal.components.PrismalGlassBottomTab
 import com.styropyr0.prismal.components.PrismalGlassBottomTabs
 import com.styropyr0.prismal.components.PrismalGlassButton
+import com.styropyr0.prismal.PrismalBackdrop
+import com.styropyr0.prismal.components.PrismalGlassMenu
+import com.styropyr0.prismal.components.PrismalGlassMenuDivider
+import com.styropyr0.prismal.components.PrismalGlassMenuItem
 import com.styropyr0.prismal.components.PrismalGlassSlider
+import com.styropyr0.prismal.components.PrismalGlassStepper
 import com.styropyr0.prismal.components.PrismalHorizontalSelector
+import com.styropyr0.prismal.components.PrismalRangeSlider
 import com.styropyr0.prismal.components.PrismalRulerSelector
+import com.styropyr0.prismal.components.PrismalSegmentedControl
+import com.styropyr0.prismal.components.prismalMenuAnchor
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
 import com.styropyr0.prismal.shapes.PrismalCapsule
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
@@ -160,6 +169,7 @@ fun CatalogPlaygroundScreen() {
                 when (PlaygroundTab.entries[selectedTab]) {
                     PlaygroundTab.Home -> CatalogTabContent(
                         backdrop = backdropLayer,
+                        screenBackdrop = modalBackdrop,
                         glassParams = glassParams,
                         luminance = luminance,
                         toggleOn = toggleOn,
@@ -291,6 +301,7 @@ private fun RowScope.IosTabItem(index: Int, icon: ImageVector, label: String, on
 @Composable
 private fun CatalogTabContent(
     backdrop: PrismalGlassLayer,
+    screenBackdrop: PrismalBackdrop,
     glassParams: GlassPlaygroundParams,
     luminance: () -> Float,
     toggleOn: Boolean,
@@ -311,8 +322,35 @@ private fun CatalogTabContent(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
+    var segmentIndex by remember { mutableIntStateOf(1) }
+    var quantity by remember { mutableIntStateOf(2) }
+    var priceRange by remember { mutableStateOf(200f..650f) }
+    val sortOptions = remember { listOf("Relevance", "Newest", "Price: Low to High", "Price: High to Low") }
+    var sortIndex by remember { mutableIntStateOf(0) }
+    var sortMenuOpen by remember { mutableStateOf(false) }
+    var sortAnchor by remember { mutableStateOf(Rect.Zero) }
+
     IosGroupedScreen(modifier = modifier, contentPadding = contentPadding) {
         item { IosLargeTitle(title = "Browse", subtitle = "Prismal components") }
+
+        item {
+            IosSectionHeader("Segmented Control")
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = IosLayout.screenHorizontal, vertical = 10.dp)
+            ) {
+                PrismalSegmentedControl(
+                    labels = listOf("Day", "Week", "Month", "Year"),
+                    selectedIndex = segmentIndex,
+                    onSelected = { segmentIndex = it },
+                    backdrop = backdrop,
+                    luminance = luminance,
+                    specular = glassParams.specularProvider(),
+                )
+            }
+            IosSectionFooter("Tap a segment or drag the droplet between segments")
+        }
 
         item {
             IosSectionHeader("Horizontal Selector")
@@ -465,6 +503,93 @@ private fun CatalogTabContent(
                     )
                 }
             }
+        }
+
+        item {
+            IosSectionHeader("Price Range")
+            IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
+                Column(
+                    Modifier.padding(
+                        horizontal = IosLayout.groupInnerPadding,
+                        vertical = 14.dp
+                    )
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Budget", style = IosTheme.body, color = IosTheme.colors.label)
+                        Text(
+                            "$${priceRange.start.toInt()} – $${priceRange.endInclusive.toInt()}",
+                            style = IosTheme.body,
+                            color = IosTheme.colors.secondaryLabel
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    PrismalRangeSlider(
+                        value = { priceRange },
+                        onValueChange = { priceRange = it },
+                        valueRange = 0f..1000f,
+                        visibilityThreshold = 1f,
+                        minDistance = 50f,
+                        backdrop = backdrop
+                    )
+                }
+            }
+            IosSectionFooter("Drag either thumb, or tap the track to move the nearest one")
+        }
+
+        item {
+            IosSectionHeader("Stepper")
+            IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
+                IosListRow(
+                    title = "Quantity",
+                    value = "$quantity",
+                    trailing = {
+                        PrismalGlassStepper(
+                            value = quantity,
+                            onValueChange = { quantity = it },
+                            backdrop = backdrop,
+                            valueRange = 0..20,
+                            luminance = luminance,
+                            specular = glassParams.specularProvider(),
+                        )
+                    }
+                )
+            }
+            IosSectionFooter("Hold − or + to keep stepping")
+        }
+
+        item {
+            IosSectionHeader("Menu")
+            IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
+                IosListRow(
+                    title = "Sort By",
+                    value = sortOptions[sortIndex],
+                    showChevron = true,
+                    onClick = { sortMenuOpen = true },
+                    modifier = Modifier.prismalMenuAnchor { sortAnchor = it }
+                )
+            }
+            PrismalGlassMenu(
+                expanded = sortMenuOpen,
+                onDismissRequest = { sortMenuOpen = false },
+                anchorBounds = sortAnchor,
+                backdrop = screenBackdrop,
+            ) {
+                sortOptions.forEachIndexed { index, label ->
+                    if (index > 0) PrismalGlassMenuDivider()
+                    PrismalGlassMenuItem(
+                        text = label,
+                        selected = index == sortIndex,
+                        onClick = {
+                            sortIndex = index
+                            sortMenuOpen = false
+                        }
+                    )
+                }
+            }
+            IosSectionFooter("The menu grows out of a droplet at the row's edge")
         }
 
         item {
