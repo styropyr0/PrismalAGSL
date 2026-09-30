@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -82,6 +84,10 @@ private enum class SelectorSubcomposeSlot {
 
 /**
  * iOS-style horizontal selector with a fixed liquid-glass droplet and scrolling text labels.
+ *
+ * Scroll to move a label under the droplet, or tap a label to scroll it there.
+ *
+ * @param selectOnTap When true, tapping a label selects it.
  */
 @Composable
 fun PrismalHorizontalSelector(
@@ -103,6 +109,7 @@ fun PrismalHorizontalSelector(
     boldWhenFocused: Boolean = true,
     chromaticAberration: Float = 0.3f,
     dropletShadow: Boolean = false,
+    selectOnTap: Boolean = true,
 ) {
     if (labels.isEmpty()) return
 
@@ -136,6 +143,7 @@ fun PrismalHorizontalSelector(
         onDrawDropletSurface = onDrawDropletSurface,
         chromaticAberration = chromaticAberration,
         dropletShadow = dropletShadow,
+        selectOnTap = selectOnTap,
     ) { index, focus ->
         val fontWeight = if (boldWhenFocused && focus > 0.88f) FontWeight.Bold else FontWeight.Medium
         BasicText(
@@ -153,6 +161,8 @@ fun PrismalHorizontalSelector(
  * iOS-style horizontal selector with a fixed liquid-glass droplet and scrolling items.
  *
  * Items are measured once from [itemContent] before the selector is laid out.
+ *
+ * @param selectOnTap When true, tapping an item scrolls it under the droplet and selects it.
  */
 @Composable
 fun PrismalHorizontalSelector(
@@ -171,6 +181,7 @@ fun PrismalHorizontalSelector(
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
     chromaticAberration: Float = 0.2f,
     dropletShadow: Boolean = false,
+    selectOnTap: Boolean = true,
     itemContent: @Composable (index: Int, focus: Float) -> Unit,
 ) {
     if (itemCount <= 0) return
@@ -214,6 +225,7 @@ fun PrismalHorizontalSelector(
                 onDrawDropletSurface = onDrawDropletSurface,
                 chromaticAberration = chromaticAberration,
                 dropletShadow = dropletShadow,
+                selectOnTap = selectOnTap,
                 itemContent = itemContent,
             )
         }.first().measure(constraints)
@@ -241,6 +253,7 @@ private fun PrismalHorizontalSelectorBody(
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
     chromaticAberration: Float = 0.2f,
     dropletShadow: Boolean = false,
+    selectOnTap: Boolean = true,
     itemContent: @Composable (index: Int, focus: Float) -> Unit,
 ) {
     val dropletChromaticAberration = chromaticAberration.coerceIn(0f, 1f)
@@ -353,6 +366,7 @@ private fun PrismalHorizontalSelectorBody(
         @Composable
         fun SelectorItemsRow(
             hideUnderDroplet: Boolean,
+            interactive: Boolean,
             rowModifier: Modifier,
         ) {
             Row(
@@ -374,6 +388,19 @@ private fun PrismalHorizontalSelectorBody(
                     Box(
                         modifier = Modifier
                             .width(with(density) { itemWidthsPx[index].toDp() })
+                            .then(
+                                if (interactive && selectOnTap) {
+                                    Modifier.selectable(
+                                        selected = index == selectedIndex,
+                                        interactionSource = null,
+                                        indication = null,
+                                        role = Role.Tab,
+                                        onClick = { scope.launch { snapToIndex(index) } },
+                                    )
+                                } else {
+                                    Modifier
+                                }
+                            )
                             .graphicsLayer {
                                 this.alpha = alpha
                                 scaleX = scale
@@ -392,6 +419,7 @@ private fun PrismalHorizontalSelectorBody(
         Box(Modifier.matchParentSize()) {
             SelectorItemsRow(
                 hideUnderDroplet = false,
+                interactive = false,
                 rowModifier = Modifier
                     .alpha(0f)
                     .fillMaxWidth()
@@ -402,6 +430,7 @@ private fun PrismalHorizontalSelectorBody(
 
             SelectorItemsRow(
                 hideUnderDroplet = false,
+                interactive = true,
                 rowModifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(scrollState)
