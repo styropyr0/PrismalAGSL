@@ -28,6 +28,7 @@ import androidx.compose.ui.node.observeReads
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -285,7 +286,7 @@ private class DrawPrismalGlassNode(
     private val layoutLayerBlock: GraphicsLayerScope.() -> Unit = {
         clip = true
         shape = shapeProvider.shape
-        compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen
+        compositingStrategy = if (isRenderEffectSupported()) CompositingStrategy.Offscreen else CompositingStrategy.Auto
     }
 
     private var layoutCoordinates: LayoutCoordinates? by mutableStateOf(null, neverEqualPolicy())
@@ -313,7 +314,7 @@ private class DrawPrismalGlassNode(
         }
     }
 
-    private val drawPrismalGlassLayer: DrawScope.() -> Unit = {
+    private val recordPrismalGlassLayer: DrawScope.() -> Unit = {
         val layer = graphicsLayer
         if (layer != null) {
             val padding = padding
@@ -330,8 +331,11 @@ private class DrawPrismalGlassNode(
             layer.topLeft =
                 if (padding != 0f) IntOffset(-padding.toInt(), -padding.toInt())
                 else IntOffset.Zero
-            drawLayer(layer)
         }
+    }
+
+    private val drawPrismalGlassLayer: DrawScope.() -> Unit = {
+        graphicsLayer?.let { drawLayer(it) }
     }
 
     override fun MeasureScope.measure(
@@ -350,6 +354,7 @@ private class DrawPrismalGlassNode(
         }
 
         onDrawBehind?.invoke(this)
+        recordPrismalGlassLayer()
         drawPrismalGlassLayer()
         if (!isRenderEffectSupported() && effectScope.legacyFrostStrength > 0f) {
             drawRect(Color.White.copy(alpha = effectScope.legacyFrostStrength))
@@ -358,13 +363,14 @@ private class DrawPrismalGlassNode(
         drawContent()
         onDrawFront?.invoke(this)
 
-        nestedGlassSource?.graphicsLayer?.let { layer ->
-            capturePrismalLayer(layer) {
+        nestedGlassSource?.let { source ->
+            capturePrismalLayer(source.graphicsLayer) {
                 onDrawBehind?.invoke(this)
                 drawPrismalGlassLayer()
                 onDrawSurface?.invoke(this)
                 onDrawFront?.invoke(this)
             }
+            source.notifyContentRecorded()
         }
     }
 

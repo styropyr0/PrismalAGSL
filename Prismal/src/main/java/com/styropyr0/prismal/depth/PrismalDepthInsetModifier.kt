@@ -1,6 +1,7 @@
 package com.styropyr0.prismal.depth
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Outline
@@ -75,6 +76,11 @@ internal class PrismalDepthInsetNode(
 
     private var prevRadius = Float.NaN
 
+    private var recordedShadow: PrismalDepthInset? = null
+    private var recordedOutline: Outline? = null
+    private var recordedSize = Size.Unspecified
+    private var recordedDensity = Float.NaN
+
     override fun ContentDrawScope.draw() {
         drawContent()
 
@@ -89,8 +95,6 @@ internal class PrismalDepthInsetNode(
             val layoutDirection = layoutDirection
 
             val radius = shadow.radius.toPx()
-            val offsetX = shadow.offset.x.toPx()
-            val offsetY = shadow.offset.y.toPx()
 
             val outline = shapeProvider.shape.createOutline(size, layoutDirection, density)
             val clipPath =
@@ -99,8 +103,6 @@ internal class PrismalDepthInsetNode(
                 } else {
                     null
                 }
-
-            configurePaint(shadow)
 
             shadowLayer.alpha = shadow.alpha
             shadowLayer.blendMode = shadow.blendMode
@@ -113,15 +115,34 @@ internal class PrismalDepthInsetNode(
                     }
                 prevRadius = radius
             }
-            shadowLayer.record {
-                val canvas = drawContext.canvas
-                canvas.save()
-                canvas.clipOutline(outline, clipPath)
-                canvas.drawOutline(outline, paint)
-                canvas.translate(offsetX, offsetY)
-                canvas.drawOutline(outline, PrismalDepthShadowMaskPaint)
-                canvas.translate(-offsetX, -offsetY)
-                canvas.restore()
+
+            val recordKey = shadow.copy(alpha = 1f, blendMode = DrawScope.DefaultBlendMode)
+            if (
+                recordKey != recordedShadow ||
+                outline !== recordedOutline ||
+                size != recordedSize ||
+                density.density != recordedDensity
+            ) {
+                recordedShadow = recordKey
+                recordedOutline = outline
+                recordedSize = size
+                recordedDensity = density.density
+
+                val offsetX = shadow.offset.x.toPx()
+                val offsetY = shadow.offset.y.toPx()
+
+                configurePaint(shadow)
+
+                shadowLayer.record {
+                    val canvas = drawContext.canvas
+                    canvas.save()
+                    canvas.clipOutline(outline, clipPath)
+                    canvas.drawOutline(outline, paint)
+                    canvas.translate(offsetX, offsetY)
+                    canvas.drawOutline(outline, PrismalDepthShadowMaskPaint)
+                    canvas.translate(-offsetX, -offsetY)
+                    canvas.restore()
+                }
             }
 
             val canvas = drawContext.canvas
@@ -148,6 +169,10 @@ internal class PrismalDepthInsetNode(
         }
         prevRadius = Float.NaN
         clipPath = null
+        recordedShadow = null
+        recordedOutline = null
+        recordedSize = Size.Unspecified
+        recordedDensity = Float.NaN
     }
 
     private fun DrawScope.configurePaint(shadow: PrismalDepthInset) {

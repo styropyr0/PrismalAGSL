@@ -1,6 +1,7 @@
 package com.styropyr0.prismal.specular
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.PaintingStyle
@@ -25,6 +26,7 @@ import com.styropyr0.prismal.internal.blur
 import com.styropyr0.prismal.internal.clipOutline
 import com.styropyr0.prismal.internal.setAGSLShader
 import com.styropyr0.prismal.isAGSLShaderSupported
+import com.styropyr0.prismal.isRenderEffectSupported
 import kotlin.math.ceil
 
 internal class PrismalSpecularElement(
@@ -82,7 +84,12 @@ internal class PrismalSpecularNode(
 
     private val agslShaderCache = PrismalShaderCacheImpl()
 
-    private var prevStyle: PrismalSpecularStyle? = null
+    private var blurRadius = Float.NaN
+
+    private var recordedSpecular: PrismalSpecular? = null
+    private var recordedOutline: Outline? = null
+    private var recordedSize = Size.Unspecified
+    private var recordedDensity = Float.NaN
 
     override fun ContentDrawScope.draw() {
         val specular = specular()
@@ -98,31 +105,39 @@ internal class PrismalSpecularNode(
             val density: Density = this
             val layoutDirection = layoutDirection
 
-            val safeSize =
-                IntSize(
-                    ceil(size.width).toInt() + 2,
-                    ceil(size.height).toInt() + 2
-                )
-
-            val outline = shapeProvider.innerShape.createOutline(size, layoutDirection, density)
-            val clipPath =
-                if (outline is Outline.Rounded) {
-                    clipPath ?: Path().also { clipPath = it }
-                } else {
-                    null
-                }
-
-            configurePaint(specular)
+            val outline = shapeProvider.shape.createOutline(size, layoutDirection, density)
 
             specularLayer.alpha = specular.alpha
             specularLayer.blendMode = specular.style.blendMode
-            specularLayer.record(safeSize) {
-                translate(1f, 1f) {
-                    val canvas = drawContext.canvas
-                    canvas.save()
-                    canvas.clipOutline(outline, clipPath)
-                    canvas.drawOutline(outline, paint)
-                    canvas.restore()
+
+            val recordKey = specular.copy(alpha = 1f)
+            if (
+                recordKey != recordedSpecular ||
+                outline !== recordedOutline ||
+                size != recordedSize ||
+                density.density != recordedDensity
+            ) {
+                recordedSpecular = recordKey
+                recordedOutline = outline
+                recordedSize = size
+                recordedDensity = density.density
+
+                val safeSize = IntSize(
+                    ceil(size.width).toInt() + 2,
+                    ceil(size.height).toInt() + 2
+                )
+                val clipPath = if (outline is Outline.Rounded) clipPath ?: Path().also { clipPath = it } else null
+
+                configurePaint(specular)
+
+                specularLayer.record(safeSize) {
+                    translate(1f, 1f) {
+                        val canvas = drawContext.canvas
+                        canvas.save()
+                        canvas.clipOutline(outline, clipPath)
+                        canvas.drawOutline(outline, paint)
+                        canvas.restore()
+                    }
                 }
             }
 
@@ -145,21 +160,28 @@ internal class PrismalSpecularNode(
         }
         clipPath = null
         agslShaderCache.clear()
-        prevStyle = null
+        blurRadius = Float.NaN
+        recordedSpecular = null
+        recordedOutline = null
+        recordedSize = Size.Unspecified
+        recordedDensity = Float.NaN
     }
 
     private fun DrawScope.configurePaint(specular: PrismalSpecular) {
         paint.color = specular.style.color
         paint.strokeWidth = ceil(specular.width.toPx().fastCoerceAtMost(size.minDimension / 2f)) * 2f
-        paint.blur(specular.blurRadius.toPx())
+        val radius = if (isRenderEffectSupported()) specular.blurRadius.toPx() else 0f
+        if (radius != blurRadius) {
+            paint.blur(radius)
+            blurRadius = radius
+        }
         if (isAGSLShaderSupported()) {
-            val shader =
-                with(specular.style) {
-                    createShader(
-                        shape = shapeProvider.innerShape,
-                        runtimeShaderCache = agslShaderCache
-                    )
-                }
+            val shader = with(specular.style) {
+                createShader(
+                    shape = shapeProvider.innerShape,
+                    runtimeShaderCache = agslShaderCache
+                )
+            }
             paint.setAGSLShader(shader)
         }
     }

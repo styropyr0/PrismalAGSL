@@ -59,6 +59,7 @@ private class PrismalGlassLayerNode(
     override fun ContentDrawScope.draw() {
         drawContent()
         capturePrismalLayer(backdrop.graphicsLayer) { backdrop.onDraw(this@draw) }
+        backdrop.notifyContentRecorded()
     }
 
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {

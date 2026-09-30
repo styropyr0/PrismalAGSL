@@ -3,9 +3,11 @@ package com.styropyr0.prismal.sources
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -18,6 +20,7 @@ import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.unit.Density
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.internal.PrismalLayerTransformScope
+import com.styropyr0.prismal.isAGSLShaderSupported
 
 private val DefaultOnDraw: ContentDrawScope.() -> Unit = { drawContent() }
 
@@ -57,7 +60,20 @@ class PrismalGlassLayer internal constructor(
 
     internal var layerCoordinates: LayoutCoordinates? by mutableStateOf(null)
 
+    private var contentVersion by mutableIntStateOf(0)
+
     private var inverseLayerScope: PrismalLayerTransformScope? = null
+
+    /**
+     * Signals glass surfaces sampling this layer that its content was re-recorded.
+     *
+     * Below API 33 the renderer can keep showing a stale copy of this layer inside a glass
+     * surface's cached layer, so samplers re-record themselves when this changes.
+     */
+    internal fun notifyContentRecorded() {
+        if (isAGSLShaderSupported()) return
+        Snapshot.withoutReadObservation { contentVersion++ }
+    }
 
     override fun readSamplingState() {
         layerCoordinates
@@ -68,6 +84,7 @@ class PrismalGlassLayer internal constructor(
         coordinates: LayoutCoordinates?,
         layerBlock: (GraphicsLayerScope.() -> Unit)?
     ) {
+        if (!isAGSLShaderSupported()) contentVersion
         val coordinates = coordinates ?: return
         val layerCoordinates = layerCoordinates
         withTransform({

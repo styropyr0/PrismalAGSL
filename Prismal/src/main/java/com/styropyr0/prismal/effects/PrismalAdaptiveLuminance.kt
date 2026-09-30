@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntSize
+import com.styropyr0.prismal.isRenderEffectSupported
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -24,18 +25,14 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private const val LUMINANCE_PROBE_SIZE = 8
 private const val LUMINANCE_SAMPLE_INTERVAL_MS = 600L
+private const val LEGACY_LUMINANCE_SAMPLE_INTERVAL_MS = 1500L
 private const val LUMINANCE_UPDATE_THRESHOLD = 0.04f
 private const val LUMINANCE_QUANTUM = 0.05f
 
 @Stable
-class PrismalAdaptiveLuminanceState internal constructor(
-    initialLuminance: Float
-) {
-    /** Normalized backdrop brightness in `[0, 1]`. */
+class PrismalAdaptiveLuminanceState internal constructor(initialLuminance: Float) {
     var luminance by mutableFloatStateOf(initialLuminance)
         internal set
-
-    /** Suggested foreground color (black or white) for readable content on the glass. */
     var contentColor by mutableStateOf(
         if (initialLuminance > 0.5f) Color.Black else Color.White
     )
@@ -77,6 +74,7 @@ fun rememberPrismalAdaptiveLuminance(
 
         val pixelBuffer = IntArray(LUMINANCE_PROBE_SIZE * LUMINANCE_PROBE_SIZE)
         val probeSize = IntSize(LUMINANCE_PROBE_SIZE, LUMINANCE_PROBE_SIZE)
+        val sampleIntervalMs = if (isRenderEffectSupported()) LUMINANCE_SAMPLE_INTERVAL_MS else LEGACY_LUMINANCE_SAMPLE_INTERVAL_MS
 
         while (isActive) {
             try {
@@ -111,7 +109,7 @@ fun rememberPrismalAdaptiveLuminance(
                 }
             } catch (_: Exception) {
             }
-            delay(LUMINANCE_SAMPLE_INTERVAL_MS.milliseconds)
+            delay(sampleIntervalMs.milliseconds)
         }
     }
 
