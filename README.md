@@ -18,11 +18,11 @@ Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass sur
 
 |                                                                      |                                                                                                                 |
 |:--------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------:|
-|                       Browse — toggle & slider                       |                                           Refraction & blur settings                                            |
+|                       Browse — toggle & slider                       |                                                Prismal Dropdown                                                 |
 | ![Browse glass controls](docs/screenshots/browse-glass-controls.jpg) |                       ![Prismal Dropdown](docs/screenshots/refraction-blur-settings.jpg)                        |
-|                                Search                                |                                                     Profile                                                     |
+|                              Search tab                              |                                                   Profile tab                                                   |
 |              ![Search tab](docs/screenshots/search.jpg)              |                                  ![Profile tab](docs/screenshots/profile.jpg)                                   |
-|                         Profile menu & tabs                          |                                           Horizontal Scroll Selector                                            |
+|                             Bottom tabs                              |                         Horizontal Scroll Selector, Segmented Control & Ruler Selector                          |
 |        ![Bottom tabs](docs/screenshots/profile-menu-tabs.jpg)        | ![Horizontal Scroll Selector, Segmented Control & Ruler Selector](docs/screenshots/gradient-glass-settings.jpg) |
 |                            Widget preview                            |                                           Widget preview — refraction                                           |
 |        ![Widget preview](docs/screenshots/widget-preview.jpg)        |                  ![Widget preview refraction](docs/screenshots/widget-preview-refraction.jpg)                   |
