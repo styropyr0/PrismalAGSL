@@ -48,6 +48,7 @@ Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass sur
 - [Bottom tab bar](#bottom-tab-bar)
 - [Horizontal selector](#horizontal-selector)
 - [Ruler selector](#ruler-selector)
+- [Segmented control, stepper, range slider, menu](#segmented-control-stepper-range-slider-menu)
 - [Demo app](#demo-app)
 - [Project structure](#project-structure)
 - [License](#license)
@@ -304,6 +305,10 @@ All components take a `backdrop: PrismalBackdrop` and degrade effects automatica
 | `PrismalGlassButton` | `…components` | Capsule button; fully tunable shape, effects, specular, depth, tint |
 | `PrismalGlassToggle` | `…components` | Spring-animated switch |
 | `PrismalGlassSlider` | `…components` | Track + refracting thumb |
+| `PrismalRangeSlider` | `…components` | Two-thumb slider selecting a sub-range |
+| `PrismalGlassStepper` | `…components` | − / + capsule with a touch glow and hold-to-repeat |
+| `PrismalSegmentedControl` | `…components` | Trackless segmented picker with a draggable magnifying glass lens |
+| `PrismalGlassMenu` | `…components` | Popup menu that morphs out of a droplet at its anchor |
 | `PrismalGlassProgressBar` | `…components` | Determinate or indeterminate track |
 | `PrismalGradientGlassPanel` | `…components` | Vertical gradient blur / refraction panel |
 | `PrismalHorizontalSelector` | `…components` | iOS-style camera-mode picker with fixed liquid droplet |
@@ -726,6 +731,81 @@ PrismalRulerSelector(
 | Major / minor ticks | Shorter ticks by default; taller ticks every `majorTickEvery` steps |
 | Edge fade | Ticks fade toward the viewport edges for depth |
 | Chromatic aberration | Configurable RGB dispersion on the droplet lens (API 33+) |
+
+---
+
+## Segmented control, stepper, range slider, menu
+
+The segmented control, stepper and range slider sample `LocalPrismalParentGlassLayer` when placed inside a glass group, the same way toggles and sliders do.
+
+### Segmented control
+
+No track: the labels sit directly on the backdrop, and a clear glass lens rides over the selected one, magnifying (`magnification`) and refracting whatever is under it. Tap a label, or drag the lens across labels; it snaps to the nearest one on release. Below API 33 the lens keeps its magnification, edge highlight and shadow, but not refraction.
+
+```kotlin
+var period by remember { mutableIntStateOf(0) }
+
+PrismalSegmentedControl(
+    labels = listOf("Day", "Week", "Month", "Year"),
+    selectedIndex = period,
+    onSelected = { period = it },
+    backdrop = backdrop,
+)
+```
+
+### Stepper
+
+Pressing a half raises a droplet that magnifies its glyph. Holding repeats the step (`repeatOnHold`); the half at a `valueRange` bound is shown disabled.
+
+```kotlin
+var quantity by remember { mutableIntStateOf(1) }
+
+PrismalGlassStepper(
+    value = quantity,
+    onValueChange = { quantity = it },
+    backdrop = backdrop,
+    valueRange = 0..20,
+)
+```
+
+### Range slider
+
+Two thumbs that cannot cross and stay `minDistance` apart. Tapping the track moves the nearest thumb.
+
+```kotlin
+var price by remember { mutableStateOf(200f..650f) }
+
+PrismalRangeSlider(
+    value = { price },
+    onValueChange = { price = it },
+    valueRange = 0f..1000f,
+    visibilityThreshold = 1f,
+    minDistance = 50f,
+    backdrop = backdrop,
+)
+```
+
+### Menu
+
+The menu grows out of a droplet at the anchor's end edge, then opens below the anchor (or above it when there is no room). It is shown in a dialog window, so give it a backdrop that covers the whole screen, such as a merged background + screen layer.
+
+```kotlin
+var open by remember { mutableStateOf(false) }
+var anchor by remember { mutableStateOf(Rect.Zero) }
+
+Text("Sort By", Modifier.prismalMenuAnchor { anchor = it }.clickable { open = true })
+
+PrismalGlassMenu(
+    expanded = open,
+    onDismissRequest = { open = false },
+    anchorBounds = anchor,
+    backdrop = screenBackdrop,
+) {
+    PrismalGlassMenuItem("Newest", onClick = { open = false }, selected = true)
+    PrismalGlassMenuDivider()
+    PrismalGlassMenuItem("Oldest", onClick = { open = false })
+}
+```
 
 ---
 
