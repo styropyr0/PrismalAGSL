@@ -350,7 +350,7 @@ private class DrawPrismalGlassNode(
 
     override fun ContentDrawScope.draw() {
         if (effectScope.update(this)) {
-            updateEffects()
+            observeEffects()
         }
 
         onDrawBehind?.invoke(this)
