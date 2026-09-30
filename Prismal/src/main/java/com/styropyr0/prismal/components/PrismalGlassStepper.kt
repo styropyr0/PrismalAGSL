@@ -116,9 +116,7 @@ fun PrismalGlassStepper(
     parentGlassLayer?.readSamplingState()
 
     fun stepFrom(from: Int, side: Int): Int {
-        val next =
-            if (side == StepperIncrement) from.toLong() + step
-            else from.toLong() - step
+        val next = if (side == StepperIncrement) from.toLong() + step else from.toLong() - step
         return next.coerceIn(valueRange.first.toLong(), valueRange.last.toLong()).toInt()
     }
 
