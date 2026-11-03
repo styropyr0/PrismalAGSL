@@ -506,7 +506,7 @@ PrismalGlassButton(
 | `isInteractive` | `true` | Disables press ripple and scale feedback when false |
 | `shape` | `PrismalCapsule()` | Glass outline |
 | `height` | `48.dp` | Fixed row height, or `null` to let the modifier / content size it |
-| `blurRadius` | `8.dp` | Backdrop blur; base radius when `adaptiveLuminance = true` |
+| `blurRadius` | `2.dp` | Backdrop blur; base radius when `adaptiveLuminance = true` |
 | `refractionHeight` / `refractionAmount` | `12.dp` / `24.dp` | Thickness of the refracting edge band and how far it bends |
 | `brightness` / `saturation` | `0f` / `1.5f` | Color controls applied to the sampled backdrop |
 | `chromaticAberration` | `0f` | RGB dispersion in `[0, 1]` (API 33+) |
@@ -587,6 +587,18 @@ private fun RowScope.TabItem(index: Int, icon: ImageVector, label: String) {
 | `tintDropletContent = false` | Droplet shows actual tab icon/label colors |
 | `tintDropletContent = true`, `dropletContentTint = null` | Default iOS blue (`#0088FF` / `#0091FF`) |
 | `tintDropletContent = true`, custom color | Your color in both light and dark themes |
+
+**Glass tuning**
+
+| Parameter | Default | Controls |
+|-----------|---------|----------|
+| `blurRadius` | `2.dp` | Blur of the backdrop behind the bar |
+| `refractionHeight` / `refractionAmount` | `24.dp` / `24.dp` | Edge lens of the bar |
+| `dropletBlurRadius` | `0.dp` | Blur of the background seen through the droplet (icons stay sharp) |
+| `dropletRefractionHeight` / `dropletRefractionAmount` | `20.dp` / `10.dp` | Droplet's own edge lens while pressed |
+| `dropletChromaticAberration` | `5f` | Droplet color fringing (`0f` = off, above `1f` exaggerates) |
+| `dropletContentScaleY` | `0.9f` | Vertical shrink of the bar seen through the droplet while pressed (`1f` = off) |
+| `pressGlow` | `0.35f` | White press glow on the bar, `0f`–`1f` |
 
 ---
 
