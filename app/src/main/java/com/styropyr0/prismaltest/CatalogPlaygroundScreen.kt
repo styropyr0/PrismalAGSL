@@ -103,6 +103,7 @@ fun CatalogPlaygroundScreen() {
         isLightTheme = isLightTheme
     )
     val luminance = { adaptiveLuminance.luminance }
+    val isHighPerformanceDevice = rememberIsHighPerformanceDevice()
 
     val pickBackgroundImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -134,6 +135,7 @@ fun CatalogPlaygroundScreen() {
                         tabsCount = 4,
                         specular = glassParams.specularProvider(),
                         dropletContentTint = if (isLightTheme) Color.Black else Color.White,
+                        renderWithLowOverhead = !isHighPerformanceDevice,
                         modifier = Modifier.padding(horizontal = 40.dp, vertical = 15.dp)
                     ) {
                         IosTabItem(

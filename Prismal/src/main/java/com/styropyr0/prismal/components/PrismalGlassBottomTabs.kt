@@ -81,8 +81,8 @@ import kotlin.math.sign
  * @param blurRadius Blur of the backdrop behind the bar.
  * @param refractionHeight Edge lens zone height of the bar.
  * @param refractionAmount Edge lens displacement of the bar.
- * @param dropletBlurRadius Blur of the background seen through the selection droplet
- *   (icons/labels stay sharp). `0.dp` disables it.
+ * @param dropletBlurRadius Blur of the bar as seen through the selection droplet. `null`
+ *   (default) uses [blurRadius], so the droplet shows the bar exactly as it is.
  * @param dropletChromaticAberration Dispersion strength of the droplet lens (`0f` = off;
  *   values above `1f` exaggerate the color split).
  * @param dropletRefractionHeight Edge lens zone height of the droplet while pressed.
@@ -90,6 +90,12 @@ import kotlin.math.sign
  *   values also make the chromatic aberration more visible.
  * @param dropletContentScaleY Vertical scale of the tab row seen through the droplet while
  *   pressed, in `[0, 1]`. Lower values show a flatter, more shrunken bar; `1f` disables it.
+ * @param renderWithLowOverhead How the droplet grows / squashes while pressed or dragged.
+ *   `true` (default) scales its graphics layer: cheap and perfectly smooth, but the
+ *   rasterized lens is resampled, so the pressed droplet looks slightly soft. `false`
+ *   re-lays the droplet out at its animated size and snaps it to whole pixels, so it renders
+ *   1:1 and sharp, at the cost of a relayout per animation frame (can stutter on weaker
+ *   devices).
  * @param pressGlow Intensity of the white press glow on the bar in `[0, 1]`.
  */
 @Composable
@@ -107,12 +113,13 @@ fun PrismalGlassBottomTabs(
     blurRadius: Dp = 2.dp,
     refractionHeight: Dp = 24.dp,
     refractionAmount: Dp = 24.dp,
-    dropletBlurRadius: Dp = 0.dp,
+    dropletBlurRadius: Dp? = null,
     dropletChromaticAberration: Float = 0.7f,
     dropletRefractionHeight: Dp = 20.dp,
     dropletRefractionAmount: Dp = 10.dp,
     pressGlow: Float = 0.35f,
     dropletContentScaleY: Float = 0.90f,
+    renderWithLowOverhead: Boolean = true,
     content: @Composable RowScope.() -> Unit
 ) {
     val isLightTheme = !isSystemInDarkTheme()
@@ -282,11 +289,11 @@ fun PrismalGlassBottomTabs(
                                 density = density,
                                 adaptiveLuminance = adaptiveLuminance,
                                 luminance = luminance(),
-                                blurRadiusPx = with(density) { dropletBlurRadius.toPx() }.let {
+                                blurRadiusPx = with(density) { (dropletBlurRadius ?: blurRadius).toPx() }.let {
                                     if (adaptiveLuminance) it.coerceAtLeast(0.01f) else it
                                 },
-                                refractionHeightPx = 0f,
-                                refractionAmountPx = 0f
+                                refractionHeightPx = with(density) { refractionHeight.toPx() },
+                                refractionAmountPx = with(density) { refractionAmount.toPx() }
                             )
                         },
                         specular = {
@@ -325,36 +332,39 @@ fun PrismalGlassBottomTabs(
             Modifier
                 .padding(horizontal = 4.dp)
                 .graphicsLayer {
-                    translationX = (
-                        if (isLtr) dampedDragAnimation.value * tabWidth + panelOffset
-                        else size.width - (dampedDragAnimation.value + 1f) * tabWidth + panelOffset
-                    ).fastRoundToInt().toFloat()
+                    val x = if (isLtr) dampedDragAnimation.value * tabWidth + panelOffset else size.width - (dampedDragAnimation.value + 1f) * tabWidth + panelOffset
+                    translationX = if (renderWithLowOverhead) x else x.fastRoundToInt().toFloat()
                 }
                 .then(interactivePrismalSpecular.gestureModifier)
                 .then(dampedDragAnimation.modifier)
                 .height(56.dp)
                 .fillMaxWidth(1f / tabsCount)
-                .layout { measurable, constraints ->
-                    val w = constraints.maxWidth
-                    val h = constraints.maxHeight
-                    val velocity = dampedDragAnimation.velocity / 10f
-                    val sx = dampedDragAnimation.scaleX / (1f - (velocity * 0.75f).fastCoerceIn(-0.2f, 0.2f))
-                    val sy = dampedDragAnimation.scaleY * (1f - (velocity * 0.25f).fastCoerceIn(-0.2f, 0.2f))
-                    val pw = (w * sx).fastRoundToInt()
-                    val ph = (h * sy).fastRoundToInt()
-                    val placeable = measurable.measure(Constraints.fixed(pw, ph))
-                    layout(w, h) {
-                        placeable.place((w - pw) / 2, (h - ph) / 2)
+                .then(
+                    if (renderWithLowOverhead) {
+                        Modifier
+                    } else {
+                        Modifier.layout { measurable, constraints ->
+                            val w = constraints.maxWidth
+                            val h = constraints.maxHeight
+                            val (sx, sy) = dropletScale(dampedDragAnimation)
+                            val pw = (w * sx).fastRoundToInt()
+                            val ph = (h * sy).fastRoundToInt()
+                            val placeable = measurable.measure(Constraints.fixed(pw, ph))
+                            layout(w, h) {
+                                placeable.place((w - pw) / 2, (h - ph) / 2)
+                            }
+                        }
                     }
-                }
+                )
                 .drawPrismalGlass(
                     backdrop = dropletBackdrop,
                     shape = { PrismalCapsule() },
                     effects = {
                         val progress = dampedDragAnimation.pressProgress
+                        val effectScale = if (renderWithLowOverhead) 1f else dampedDragAnimation.scaleY
                         prismalLens(
-                            refractionHeight = with(density) { dropletRefractionHeight.toPx() } * dampedDragAnimation.scaleY * progress,
-                            refractionAmount = with(density) { dropletRefractionAmount.toPx() } * dampedDragAnimation.scaleY * progress,
+                            refractionHeight = with(density) { dropletRefractionHeight.toPx() } * effectScale * progress,
+                            refractionAmount = with(density) { dropletRefractionAmount.toPx() } * effectScale * progress,
                             depthEffect = true,
                             chromaticAberration = dropletChromaticAberration.coerceAtLeast(0f)
                         )
@@ -370,10 +380,18 @@ fun PrismalGlassBottomTabs(
                     depthInset = {
                         val progress = dampedDragAnimation.pressProgress
                         PrismalDepthInset(
-                            radius = 8.dp * dampedDragAnimation.scaleY * progress,
+                            radius = 8.dp * progress * if (renderWithLowOverhead) 1f else dampedDragAnimation.scaleY,
                             alpha = progress
                         )
                     },
+                    layerBlock = if (renderWithLowOverhead) {
+                        {
+                            val (sx, sy) = dropletScale(dampedDragAnimation)
+                            scaleX = sx
+                            scaleY = sy
+                        }
+                    }
+                    else null,
                     onDrawSurface = {
                         val progress = dampedDragAnimation.pressProgress
                         drawRect(
@@ -389,3 +407,10 @@ fun PrismalGlassBottomTabs(
 }
 
 private const val DropletPressedScale = 78f / 56f
+
+private fun dropletScale(motion: PrismalSpringMotion): Pair<Float, Float> {
+    val velocity = motion.velocity / 10f
+    val sx = motion.scaleX / (1f - (velocity * 0.75f).fastCoerceIn(-0.2f, 0.2f))
+    val sy = motion.scaleY * (1f - (velocity * 0.25f).fastCoerceIn(-0.2f, 0.2f))
+    return sx to sy
+}
