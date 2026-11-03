@@ -18,6 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -56,7 +60,8 @@ fun SearchTabContent(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    var query by remember { mutableStateOf("") }
+    val queryState = rememberTextFieldState()
+    val query = queryState.text.toString()
 
     val filteredResults = remember(query) {
         if (query.isBlank()) {
@@ -76,9 +81,8 @@ fun SearchTabContent(
                 backdrop = backdrop,
                 glassParams = glassParams,
                 luminance = luminance,
-                query = query,
-                onQueryChange = { query = it },
-                onClear = { query = "" }
+                queryState = queryState,
+                onClear = { queryState.clearText() }
             )
         }
 
@@ -144,12 +148,12 @@ private fun IosGlassSearchField(
     backdrop: PrismalGlassLayer,
     glassParams: GlassPlaygroundParams,
     luminance: () -> Float,
-    query: String,
-    onQueryChange: (String) -> Unit,
+    queryState: TextFieldState,
     onClear: () -> Unit
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val query = queryState.text
     val isSearchActive = isFocused || query.isNotEmpty()
     val searchAnimationSpec = spring<Float>(dampingRatio = 0.84f, stiffness = 420f)
     val cancelWidth = 56.dp
@@ -209,15 +213,14 @@ private fun IosGlassSearchField(
                             tint = IosTheme.colors.secondaryLabel
                         )
                         BasicTextField(
-                            value = query,
-                            onValueChange = onQueryChange,
+                            state = queryState,
                             modifier = Modifier
                                 .weight(1f)
                                 .onFocusChanged { isFocused = it.isFocused },
-                            singleLine = true,
+                            lineLimits = TextFieldLineLimits.SingleLine,
                             textStyle = IosTheme.body.copy(color = IosTheme.colors.label),
                             cursorBrush = SolidColor(IosTheme.colors.systemBlue),
-                            decorationBox = { innerTextField ->
+                            decorator = { innerTextField ->
                                 if (query.isEmpty()) {
                                     Text(
                                         text = "Search",
