@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.styropyr0.prismal.components.PrismalTextMagnifierHost
 import com.styropyr0.prismal.shapes.PrismalCapsule
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 
@@ -186,64 +187,66 @@ private fun IosGlassSearchField(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PlaygroundGlassSurface(
-                backdrop = backdrop,
-                params = glassParams,
-                luminance = luminance,
-                shape = { PrismalCapsule() },
-                modifier = Modifier
-                    .width(searchWidth)
-                    .height(48.dp)
-                    .graphicsLayer {
-                        scaleX = fieldScale
-                        scaleY = fieldScale
-                    },
-                content = {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = IosTheme.colors.secondaryLabel
-                        )
-                        BasicTextField(
-                            state = queryState,
+            PrismalTextMagnifierHost(backdrop = backdrop) {
+                PlaygroundGlassSurface(
+                    backdrop = backdrop,
+                    params = glassParams,
+                    luminance = luminance,
+                    shape = { PrismalCapsule() },
+                    modifier = Modifier
+                        .width(searchWidth)
+                        .height(48.dp)
+                        .graphicsLayer {
+                            scaleX = fieldScale
+                            scaleY = fieldScale
+                        },
+                    content = {
+                        Row(
                             modifier = Modifier
-                                .weight(1f)
-                                .onFocusChanged { isFocused = it.isFocused },
-                            lineLimits = TextFieldLineLimits.SingleLine,
-                            textStyle = IosTheme.body.copy(color = IosTheme.colors.label),
-                            cursorBrush = SolidColor(IosTheme.colors.systemBlue),
-                            decorator = { innerTextField ->
-                                if (query.isEmpty()) {
-                                    Text(
-                                        text = "Search",
-                                        style = IosTheme.body,
-                                        color = IosTheme.colors.secondaryLabel
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        )
-                        if (query.isNotEmpty()) {
+                                .fillMaxSize()
+                                .padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
                             Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Clear",
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .clickable(onClick = onClear),
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
                                 tint = IosTheme.colors.secondaryLabel
                             )
+                            BasicTextField(
+                                state = queryState,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .onFocusChanged { isFocused = it.isFocused },
+                                lineLimits = TextFieldLineLimits.SingleLine,
+                                textStyle = IosTheme.body.copy(color = IosTheme.colors.label),
+                                cursorBrush = SolidColor(IosTheme.colors.systemBlue),
+                                decorator = { innerTextField ->
+                                    if (query.isEmpty()) {
+                                        Text(
+                                            text = "Search",
+                                            style = IosTheme.body,
+                                            color = IosTheme.colors.secondaryLabel
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            )
+                            if (query.isNotEmpty()) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Clear",
+                                    modifier = Modifier
+                                        .size(18.dp)
+                                        .clickable(onClick = onClear),
+                                    tint = IosTheme.colors.secondaryLabel
+                                )
+                            }
                         }
                     }
-                }
-            )
+                )
+            }
 
             Box(
                 modifier = Modifier
