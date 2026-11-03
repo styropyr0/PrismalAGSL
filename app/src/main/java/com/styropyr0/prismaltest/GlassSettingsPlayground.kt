@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.PrismalGlass
+import com.styropyr0.prismal.PrismalGlassPipeline
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 
@@ -52,10 +53,30 @@ fun GlassSettingsPlayground(
 
         item {
             IosSectionHeader("Platform")
+            val pipelineOptions: List<PrismalGlassPipeline?> =
+                listOf(null) + PrismalGlass.availablePipelines.reversed()
             IosGlassGroup(backdrop = backdrop, params = params, luminance = luminance) {
-                IosListRow(
-                    title = "Pipeline",
-                    value = PrismalGlass.pipeline.name
+                if (pipelineOptions.size > 2) {
+                    IosGlassDropdownRow(
+                        title = "Pipeline",
+                        options = pipelineOptions.map { it.pipelineLabel() },
+                        selectedIndex = pipelineOptions.indexOf(PrismalGlass.pipelineOverride),
+                        onSelected = { PrismalGlass.pipelineOverride = pipelineOptions[it] },
+                        screenBackdrop = screenBackdrop,
+                        params = params,
+                        luminance = luminance,
+                    )
+                } else {
+                    IosListRow(
+                        title = "Pipeline",
+                        value = PrismalGlass.pipeline.name
+                    )
+                }
+            }
+            if (pipelineOptions.size > 2) {
+                IosSectionFooter(
+                    "Force a lower tier to preview how glass degrades on older Android versions. " +
+                        "Active: ${PrismalGlass.pipeline.name}. Resets to Auto when the app restarts."
                 )
             }
         }
@@ -350,4 +371,11 @@ fun GlassSettingsPlayground(
 
         item { Spacer(Modifier.height(8.dp)) }
     }
+}
+
+private fun PrismalGlassPipeline?.pipelineLabel(): String = when (this) {
+    null -> "Auto (${PrismalGlass.devicePipeline.name})"
+    PrismalGlassPipeline.Liquid -> "Liquid · API 33+"
+    PrismalGlassPipeline.Standard -> "Standard · API 31–32"
+    PrismalGlassPipeline.Legacy -> "Legacy · API 25–30"
 }
