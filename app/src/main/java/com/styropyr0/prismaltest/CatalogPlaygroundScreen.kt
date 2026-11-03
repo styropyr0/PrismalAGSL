@@ -133,8 +133,8 @@ fun CatalogPlaygroundScreen() {
                         backdrop = backdropLayer,
                         tabsCount = 4,
                         specular = glassParams.specularProvider(),
-                        dropletContentTint = IosTheme.colors.systemBlue,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 15.dp)
+                        dropletContentTint = if (isLightTheme) Color.Black else Color.White,
+                        modifier = Modifier.padding(horizontal = 40.dp, vertical = 15.dp)
                     ) {
                         IosTabItem(
                             index = PlaygroundTab.Home.ordinal,

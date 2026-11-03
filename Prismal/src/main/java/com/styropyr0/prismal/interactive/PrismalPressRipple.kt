@@ -28,10 +28,13 @@ import kotlinx.coroutines.launch
  * [pressProgress] / [offset] into a [drawPrismalGlass] [layerBlock].
  *
  * @param animationScope Coroutine scope used for spring animations.
+ * @param intensity Multiplier for the press glow (flat wash + ripple highlight). `1f` is the
+ *   default strength, `0f` disables the glow while keeping press tracking.
  * @param position Maps raw touch offset to ripple center within the surface bounds.
  */
 class PrismalPressRipple(
     val animationScope: CoroutineScope,
+    val intensity: Float = 1f,
     val position: (size: Size, offset: Offset) -> Offset = { _, offset -> offset }
 ) {
 
@@ -63,7 +66,7 @@ class PrismalPressRipple(
     /** Draw modifier that renders the AGSL touch ripple over content. */
     val modifier: Modifier =
         Modifier.drawWithContent {
-            val progress = pressProgressAnimation.value
+            val progress = pressProgressAnimation.value * intensity.fastCoerceIn(0f, 1f)
             if (progress > 0f) {
                 if (shader != null) {
                     drawRect(
