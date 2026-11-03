@@ -117,7 +117,7 @@ fun PrismalGlassBottomTabs(
     dropletChromaticAberration: Float = 0.7f,
     dropletRefractionHeight: Dp = 20.dp,
     dropletRefractionAmount: Dp = 10.dp,
-    pressGlow: Float = 0.35f,
+    pressGlow: Float = 1f,
     dropletContentScaleY: Float = 0.90f,
     renderWithLowOverhead: Boolean = true,
     content: @Composable RowScope.() -> Unit
