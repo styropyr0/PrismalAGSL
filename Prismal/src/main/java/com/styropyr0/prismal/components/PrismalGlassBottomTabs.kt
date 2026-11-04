@@ -45,6 +45,8 @@ import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.fastRoundToInt
 import androidx.compose.ui.util.lerp
 import com.styropyr0.prismal.PrismalBackdrop
+import com.styropyr0.prismal.PrismalGlass
+import com.styropyr0.prismal.PrismalGlassPipeline
 import com.styropyr0.prismal.sources.prismalGlassLayer
 import com.styropyr0.prismal.sources.rememberPrismalMergedSource
 import com.styropyr0.prismal.sources.rememberPrismalGlassLayer
@@ -216,7 +218,8 @@ fun PrismalGlassBottomTabs(
                 drawTabs()
             }
         }
-        val dropletBackdrop = rememberPrismalMergedSource(backdrop, shrunkTabsBackdrop)
+        val mergedDropletBackdrop = rememberPrismalMergedSource(backdrop, shrunkTabsBackdrop)
+        val dropletBackdrop = if (PrismalGlass.pipeline == PrismalGlassPipeline.Legacy) shrunkTabsBackdrop else mergedDropletBackdrop
 
         val interactivePrismalSpecular = remember(animationScope, tabWidth, isLtr, pressGlow) {
             PrismalPressRipple(

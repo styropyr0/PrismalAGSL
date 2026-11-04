@@ -2,17 +2,18 @@ package com.styropyr0.prismal.effects
 
 import androidx.compose.ui.graphics.RenderEffect
 import com.styropyr0.prismal.PrismalGlassEffectProvider
+import com.styropyr0.prismal.PrismalGlassEffectScopeImpl
 import com.styropyr0.prismal.PrismalShader
 import com.styropyr0.prismal.internal.PrismalShaderEffect
 import com.styropyr0.prismal.internal.chain
 import com.styropyr0.prismal.isRenderEffectSupported
 import com.styropyr0.prismal.isAGSLShaderSupported
 import org.intellij.lang.annotations.Language
-import kotlin.contracts.ExperimentalContracts
 
 /** Chains a pre-built [RenderEffect] onto the current backdrop pipeline. */
 fun PrismalGlassEffectProvider.effect(effect: RenderEffect) {
     if (!isRenderEffectSupported()) return
+    (this as? PrismalGlassEffectScopeImpl)?.requiresFullResolution = true
 
     renderEffect = renderEffect.chain(effect)
 }
@@ -25,7 +26,6 @@ fun PrismalGlassEffectProvider.effect(effect: RenderEffect) {
  * @param uniformShaderName Name of the `uniform shader` input in the AGSL (usually `"content"`).
  * @param block Uniform setup applied after the shader is obtained from cache.
  */
-@OptIn(ExperimentalContracts::class)
 fun PrismalGlassEffectProvider.prismalAGSLShaderEffect(
     key: String,
     @Language("AGSL") shaderString: String,
@@ -33,11 +33,11 @@ fun PrismalGlassEffectProvider.prismalAGSLShaderEffect(
     block: PrismalShader.() -> Unit
 ) {
     if (!isAGSLShaderSupported()) return
+    (this as? PrismalGlassEffectScopeImpl)?.requiresFullResolution = true
 
-    val effect =
-        PrismalShaderEffect(
-            runtimeShader = obtainAGSLShader(key, shaderString).apply(block),
-            uniformShaderName = uniformShaderName
-        )
+    val effect = PrismalShaderEffect(
+        runtimeShader = obtainAGSLShader(key, shaderString).apply(block),
+        uniformShaderName = uniformShaderName
+    )
     renderEffect = renderEffect.chain(effect)
 }

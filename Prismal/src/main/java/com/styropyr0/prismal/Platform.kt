@@ -40,6 +40,22 @@ fun isRenderEffectSupported(): Boolean =
 fun isAGSLShaderSupported(): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && allowsPipeline(PrismalGlassPipeline.Liquid)
 
+/**
+ * Whether the platform can clip a layer to an arbitrary path outline natively (API 33+).
+ *
+ * Below that, Compose falls back to `canvas.clipPath` for path outlines, which is slower and not
+ * antialiased. Depends on the real API level, so it ignores [PrismalGlass.pipelineOverride].
+ */
+@ChecksSdkIntAtLeast(Build.VERSION_CODES.TIRAMISU)
+internal fun canClipToPathOutline(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+/**
+ * Whether glass surfaces must re-record when a [com.styropyr0.prismal.sources.PrismalGlassLayer]
+ * they sample is re-recorded, because the renderer may otherwise keep showing a stale copy.
+ * Depends on the real renderer, so it ignores [PrismalGlass.pipelineOverride].
+ */
+internal fun needsGlassLayerRefresh(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+
 /** Platform capability checks and pipeline selection for the Prismal glass stack. */
 object PrismalGlass {
 

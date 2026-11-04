@@ -4,6 +4,7 @@ import androidx.annotation.FloatRange
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.TileMode
 import com.styropyr0.prismal.PrismalGlassEffectProvider
+import com.styropyr0.prismal.PrismalGlassEffectScopeImpl
 import com.styropyr0.prismal.isRenderEffectSupported
 import kotlin.math.max
 
@@ -32,5 +33,8 @@ fun PrismalGlassEffectProvider.prismalBlur(
         if (radius > padding) padding = radius
     }
 
-    renderEffect = BlurEffect(renderEffect, radius, radius, edgeTreatment)
+    val impl = this as? PrismalGlassEffectScopeImpl
+    impl?.hasBlur = true
+    val layerRadius = radius * (impl?.backdropScale ?: 1f)
+    renderEffect = BlurEffect(renderEffect, layerRadius, layerRadius, edgeTreatment)
 }

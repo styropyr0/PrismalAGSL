@@ -20,7 +20,7 @@ import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.unit.Density
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.internal.PrismalLayerTransformScope
-import com.styropyr0.prismal.isAGSLShaderSupported
+import com.styropyr0.prismal.needsGlassLayerRefresh
 
 private val DefaultOnDraw: ContentDrawScope.() -> Unit = { drawContent() }
 
@@ -71,7 +71,7 @@ class PrismalGlassLayer internal constructor(
      * surface's cached layer, so samplers re-record themselves when this changes.
      */
     internal fun notifyContentRecorded() {
-        if (isAGSLShaderSupported()) return
+        if (!needsGlassLayerRefresh()) return
         Snapshot.withoutReadObservation { contentVersion++ }
     }
 
@@ -84,7 +84,7 @@ class PrismalGlassLayer internal constructor(
         coordinates: LayoutCoordinates?,
         layerBlock: (GraphicsLayerScope.() -> Unit)?
     ) {
-        if (!isAGSLShaderSupported()) contentVersion
+        if (needsGlassLayerRefresh()) contentVersion
         val coordinates = coordinates ?: return
         val layerCoordinates = layerCoordinates
         withTransform({

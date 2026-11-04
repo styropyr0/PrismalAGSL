@@ -53,6 +53,18 @@ internal abstract class PrismalGlassEffectScopeImpl : PrismalGlassEffectProvider
     override var renderEffect: RenderEffect? = null
     override var legacyFrostStrength: Float = 0f
 
+    /**
+     * Resolution scale the backdrop is sampled at. Set before [apply]; effects that work in
+     * layer pixels (blur radius) scale their parameters by it.
+     */
+    var backdropScale: Float = 1f
+
+    /** Whether the current chain contains a blur (downsampling only pays off with one). */
+    var hasBlur: Boolean = false
+
+    /** Set by effects whose output depends on resolution, which rules out downsampling. */
+    var requiresFullResolution: Boolean = false
+
     private val runtimeShaderCache = PrismalShaderCacheImpl()
 
     override fun obtainAGSLShader(key: String, string: String): PrismalShader {
@@ -84,6 +96,8 @@ internal abstract class PrismalGlassEffectScopeImpl : PrismalGlassEffectProvider
         padding = 0f
         renderEffect = null
         legacyFrostStrength = 0f
+        hasBlur = false
+        requiresFullResolution = false
         effects()
     }
 
@@ -95,6 +109,9 @@ internal abstract class PrismalGlassEffectScopeImpl : PrismalGlassEffectProvider
         padding = 0f
         renderEffect = null
         legacyFrostStrength = 0f
+        backdropScale = 1f
+        hasBlur = false
+        requiresFullResolution = false
         runtimeShaderCache.clear()
     }
 }

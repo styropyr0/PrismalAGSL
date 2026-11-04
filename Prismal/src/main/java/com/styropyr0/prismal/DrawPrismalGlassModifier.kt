@@ -1,5 +1,8 @@
 package com.styropyr0.prismal
 
+import kotlin.math.ceil
+import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -293,6 +296,8 @@ private class DrawPrismalGlassNode(
 
     private var padding by mutableFloatStateOf(0f)
 
+    private var backdropScale by mutableFloatStateOf(1f)
+
     private val recordBackdropBlock: (DrawScope.() -> Unit) = {
         val canvas = drawContext.canvas
         val padding = padding
@@ -318,24 +323,52 @@ private class DrawPrismalGlassNode(
         val layer = graphicsLayer
         if (layer != null) {
             val padding = padding
+            val sampleScale = backdropScale
+            val fullWidth = size.width.toInt() + padding.toInt() * 2
+            val fullHeight = size.height.toInt() + padding.toInt() * 2
 
-            capturePrismalLayer(
-                layer,
-                size = IntSize(
-                    size.width.toInt() + padding.toInt() * 2,
-                    size.height.toInt() + padding.toInt() * 2
-                ),
-                block = recordBackdropBlock
-            )
+            if (sampleScale < 1f) {
+                capturePrismalLayer(
+                    layer,
+                    size = IntSize(ceil(fullWidth * sampleScale).toInt(), ceil(fullHeight * sampleScale).toInt()),
+                    block = {
+                        val canvas = drawContext.canvas
+                        canvas.save()
+                        canvas.scale(sampleScale, sampleScale)
+                        recordBackdropBlock()
+                        canvas.restore()
+                    }
+                )
+                layer.topLeft = IntOffset.Zero
+            } else {
+                capturePrismalLayer(
+                    layer,
+                    size = IntSize(fullWidth, fullHeight),
+                    block = recordBackdropBlock
+                )
 
-            layer.topLeft =
-                if (padding != 0f) IntOffset(-padding.toInt(), -padding.toInt())
-                else IntOffset.Zero
+                layer.topLeft =
+                    if (padding != 0f) IntOffset(-padding.toInt(), -padding.toInt())
+                    else IntOffset.Zero
+            }
         }
     }
 
     private val drawPrismalGlassLayer: DrawScope.() -> Unit = {
-        graphicsLayer?.let { drawLayer(it) }
+        graphicsLayer?.let { layer ->
+            val sampleScale = backdropScale
+            if (sampleScale < 1f) {
+                val offset = -padding.toInt().toFloat()
+                withTransform({
+                    translate(offset, offset)
+                    scale(1f / sampleScale, 1f / sampleScale, Offset.Zero)
+                }) {
+                    drawLayer(layer)
+                }
+            } else {
+                drawLayer(layer)
+            }
+        }
     }
 
     override fun MeasureScope.measure(
@@ -406,7 +439,16 @@ private class DrawPrismalGlassNode(
     private fun updateEffects() {
         if (!effectScope.size.isSpecified) return
 
+        val canDownsample = isRenderEffectSupported() && !isAGSLShaderSupported()
+        effectScope.backdropScale = if (canDownsample) DownsampledBackdropScale else 1f
         effectScope.apply(effects)
+        if (effectScope.backdropScale < 1f &&
+            (!effectScope.hasBlur || effectScope.requiresFullResolution)
+        ) {
+            effectScope.backdropScale = 1f
+            effectScope.apply(effects)
+        }
+        backdropScale = effectScope.backdropScale
         padding = effectScope.padding
         if (isRenderEffectSupported()) {
             graphicsLayer?.renderEffect = effectScope.renderEffect
@@ -434,3 +476,6 @@ private class DrawPrismalGlassNode(
         nestedGlassSource?.layerCoordinates = null
     }
 }
+
+/** Backdrop resolution used for blurred glass on the Standard tier (API 31–32). */
+private const val DownsampledBackdropScale = 0.5f
