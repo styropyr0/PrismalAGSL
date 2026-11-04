@@ -129,7 +129,7 @@ fun GlassSettingsPlayground(
             }
             if (params.adaptiveLuminance) {
                 IosSectionFooter(
-                    "Blur Radius is the adaptive base — bright scenes scale up, dark scenes scale down."
+                    "Blur Radius is the adaptive base - bright scenes scale up, dark scenes scale down."
                 )
             }
         }

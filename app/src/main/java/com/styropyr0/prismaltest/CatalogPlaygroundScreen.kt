@@ -73,6 +73,7 @@ import com.styropyr0.prismal.sources.rememberPrismalMergedSource
 private enum class PlaygroundTab {
     Home,
     Search,
+    Play,
     Profile,
     Settings
 }
@@ -134,7 +135,7 @@ fun CatalogPlaygroundScreen() {
                             selectedTabIndex = { selectedTab },
                             onTabSelected = { selectedTab = it },
                             backdrop = backdropLayer,
-                            tabsCount = 4,
+                            tabsCount = 5,
                             specular = glassParams.specularProvider(),
                             dropletContentTint = if (isLightTheme) Color.Black else Color.White,
                             renderWithLowOverhead = !isHighPerformanceDevice,
@@ -151,6 +152,12 @@ fun CatalogPlaygroundScreen() {
                                 icon = R.drawable.ic_search.asIcon(),
                                 label = "Search",
                                 onClick = { selectedTab = PlaygroundTab.Search.ordinal }
+                            )
+                            IosTabItem(
+                                index = PlaygroundTab.Search.ordinal,
+                                icon = R.drawable.ic_game.asIcon(),
+                                label = "Play",
+                                onClick = { selectedTab = PlaygroundTab.Play.ordinal }
                             )
                             IosTabItem(
                                 index = PlaygroundTab.Profile.ordinal,
@@ -206,6 +213,14 @@ fun CatalogPlaygroundScreen() {
                         )
 
                         PlaygroundTab.Profile -> ProfileTabContent(
+                            backdrop = backdropLayer,
+                            glassParams = glassParams,
+                            luminance = luminance,
+                            modifier = Modifier.padding(innerPadding),
+                            contentPadding = contentPadding
+                        )
+
+                        PlaygroundTab.Play -> PlayTabContent(
                             backdrop = backdropLayer,
                             glassParams = glassParams,
                             luminance = luminance,
