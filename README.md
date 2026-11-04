@@ -1,8 +1,8 @@
 # Prismal - Liquid Glass for Android (Jetpack)
 
-**High Performance Liquid glass for Jetpack Compose** — backdrop sampling, blur, edge refraction, specular highlights, and interactive glass controls with automatic degradation on older Android versions.
+**High Performance Liquid glass for Jetpack Compose** : backdrop sampling, blur, edge refraction, specular highlights, and interactive glass controls with automatic degradation on older Android versions.
 
-[Download Demo App](https://pub-3b102de89d7542a8bfd005af12dd955c.r2.dev/Prismal%20AGSL%20Demo%20v1.0.5.apk)
+[Download Demo App](https://pub-3b102de89d7542a8bfd005af12dd955c.r2.dev/Prismal%20AGSL%20Demo%20v1.0.6.apk)
 
 [![JitPack](https://jitpack.io/v/styropyr0/PrismalAGSL.svg)](https://jitpack.io/#styropyr0/PrismalAGSL)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
