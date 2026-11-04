@@ -49,6 +49,7 @@ Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass sur
 - [Horizontal selector](#horizontal-selector)
 - [Ruler selector](#ruler-selector)
 - [Segmented control, stepper, range slider, menu](#segmented-control-stepper-range-slider-menu)
+- [Text magnifier](#text-magnifier)
 - [Demo app](#demo-app)
 - [Project structure](#project-structure)
 - [License](#license)
@@ -79,6 +80,8 @@ Both libraries share the same Prismal glass aesthetic (blur, refraction, interac
 - **Custom glass builder** — `drawPrismalGlass`, `PrismalLiquidGlass`, and composable effect helpers
 - **Adaptive luminance** — optional brightness sampling to tune blur and foreground contrast against the backdrop
 - **Press interactions** — ripple, scale, and spring motion shared across components
+- **Glass text magnifier** — iOS-style liquid loupe replaces Android's magnifier while dragging a text cursor or selection
+- **Pipeline override** — force a lower tier on a capable device to preview how glass degrades on older Android versions
 
 ---
 
@@ -102,6 +105,17 @@ PrismalGlass.supportsBackdropBlur  // API 31+
 PrismalGlass.supportsRefraction    // API 33+
 PrismalGlass.supportsAgslEffects   // API 33+
 PrismalGlass.isSupported()         // API 25+
+PrismalGlass.devicePipeline        // highest tier this device supports
+```
+
+**Previewing degradation** — force a lower tier on a capable device (e.g. see the Legacy look on an Android 13+ phone). The override can only lower the tier. Recreate the glass UI after changing it, since some components build their shaders once:
+
+```kotlin
+PrismalGlass.pipelineOverride = PrismalGlassPipeline.Legacy  // or Standard; null = auto
+
+key(PrismalGlass.pipeline) {
+    // glass UI
+}
 ```
 
 AGSL shader assets are loaded once at startup via AndroidX App Startup (`PrismalAgslInitializer`). No manual initialization is required.
@@ -315,6 +329,7 @@ All components take a `backdrop: PrismalBackdrop` and degrade effects automatica
 | `PrismalRulerSelector` | `…components` | Ruler / tick picker with value shown inside a fixed liquid droplet |
 | `PrismalGlassBottomTabs` | `…components` | iOS-style tab bar with sliding liquid droplet |
 | `PrismalGlassBottomTab` | `…components` | Single tab item for the bottom bar |
+| `PrismalTextMagnifierHost` | `…components` | Glass loupe replacing a text field's drag magnifier |
 
 Example — toggle and slider:
 
@@ -532,7 +547,7 @@ Lower-level building blocks used by components:
 
 | Class | Use |
 |-------|-----|
-| `PrismalPressRipple` | Touch ripple + press progress for specular and scale |
+| `PrismalPressRipple` | Touch ripple + press progress for specular and scale; `intensity` scales the press glow (`0f` = off) |
 | `PrismalSpringMotion` | Spring drag controller for sliders, toggles, tab droplet |
 
 Attach `PrismalPressRipple.modifier` and `gestureModifier` to a glass surface and read `pressProgress` in `layerBlock` or effect blocks.
@@ -594,11 +609,12 @@ private fun RowScope.TabItem(index: Int, icon: ImageVector, label: String) {
 |-----------|---------|----------|
 | `blurRadius` | `2.dp` | Blur of the backdrop behind the bar |
 | `refractionHeight` / `refractionAmount` | `24.dp` / `24.dp` | Edge lens of the bar |
-| `dropletBlurRadius` | `0.dp` | Blur of the background seen through the droplet (icons stay sharp) |
+| `dropletBlurRadius` | `null` | Blur of the bar seen through the droplet; `null` = same as `blurRadius` |
 | `dropletRefractionHeight` / `dropletRefractionAmount` | `20.dp` / `10.dp` | Droplet's own edge lens while pressed |
-| `dropletChromaticAberration` | `5f` | Droplet color fringing (`0f` = off, above `1f` exaggerates) |
+| `dropletChromaticAberration` | `0.7f` | Droplet color fringing (`0f` = off, above `1f` exaggerates) |
 | `dropletContentScaleY` | `0.9f` | Vertical shrink of the bar seen through the droplet while pressed (`1f` = off) |
-| `pressGlow` | `0.35f` | White press glow on the bar, `0f`–`1f` |
+| `pressGlow` | `1f` | White press glow on the bar, `0f`–`1f` |
+| `renderWithLowOverhead` | `true` | `true`: droplet grows via layer scale (smooth, cheap, slightly soft when pressed). `false`: droplet is re-laid out at its animated size (sharp, relayout per frame — use on capable devices) |
 
 ---
 
@@ -821,6 +837,34 @@ PrismalGlassMenu(
 
 ---
 
+## Text magnifier
+
+`PrismalTextMagnifierHost` replaces a text field's drag magnifier with an iOS-style glass loupe — the same lens as the pressed bottom-tab droplet. It pops up above the drag point while a cursor or selection handle is dragged (including long-press selection), and hides Android's own magnifier for that field.
+
+```kotlin
+import com.styropyr0.prismal.components.PrismalTextMagnifierHost
+
+PrismalTextMagnifierHost(backdrop = backdrop) {
+    PrismalGlassSurface(backdrop = backdrop, shape = { PrismalCapsule() }) {
+        BasicTextField(state = rememberTextFieldState(), lineLimits = TextFieldLineLimits.SingleLine)
+    }
+}
+```
+
+| Parameter | Default | Controls |
+|-----------|---------|----------|
+| `zoom` | `1.5f` | Magnification |
+| `size` / `lift` | `120×60.dp` / `60.dp` | Loupe size and distance above the text line |
+| `refractionHeight` / `refractionAmount` | `30.dp` / `14.dp` | Edge lens (height = half the loupe height curves the whole droplet) |
+| `chromaticAberration` | `0.7f` | Edge color split |
+| `specular` / `depthShadow` / `depthInset` | droplet defaults | Rim, shadow and inner shading (`null` = off) |
+
+Use the `TextFieldState` overload of `BasicTextField`: inside a scaled or animated glass surface, the `String` overload can hide the cursor handle (ending the drag) when it reaches the field's edge.
+
+Notes: Compose has no public magnifier API, so this hooks into its internals defensively — if a Compose update changes them, the system magnifier simply keeps working. The library's consumer ProGuard rules keep it working in minified builds. Requires API 28+ (like the system magnifier). The loupe stays inside the window (it's nudged in from the edges, still magnifying the text under the finger), but it draws outside the host's bounds, so a clipping parent such as a list's edge can cut it off.
+
+---
+
 ## Demo app
 
 The `:app` module in this repository is a catalog playground (not published to JitPack). It demonstrates:
@@ -830,9 +874,11 @@ The `:app` module in this repository is a catalog playground (not published to J
 - Horizontal selector (camera-mode style picker)
 - Ruler selector (tick / measurement picker)
 - Gradient glass panel and profile avatar
-- Bottom tab bar with customizable droplet tint
+- Bottom tab bar with customizable droplet tint; uses the sharper `renderWithLowOverhead = false` droplet on capable devices
+- Search field with the glass text magnifier
 - Custom wallpaper picker with persistence across app restarts
 - Live glass parameter tuning in Settings
+- Pipeline switch in Settings → Platform (Auto / Liquid / Standard / Legacy) to preview degradation; resets to Auto on restart
 
 Run locally:
 
@@ -850,6 +896,7 @@ Prismal/
 ├── depth/               # Depth shadow and inset modifiers
 ├── effects/             # Blur, lens, gradient glass, color controls
 ├── interactive/         # Press ripple, spring motion, drag gestures
+├── internal/            # Shaders, layer capture, platform magnifier bridge
 ├── shapes/              # PrismalRoundedRectangle, PrismalCapsule, …
 ├── sources/             # Backdrop layers, merged sources, canvas source
 ├── specular/            # Edge highlight styles
@@ -857,7 +904,7 @@ Prismal/
 ├── PrismalBackdrop.kt
 ├── PrismalGlassSurface.kt
 ├── PrismalLiquidGlass.kt
-└── Platform.kt          # Pipeline tier detection
+└── Platform.kt          # Pipeline tier detection and override
 app/                     # Demo catalog (not published)
 ```
 
