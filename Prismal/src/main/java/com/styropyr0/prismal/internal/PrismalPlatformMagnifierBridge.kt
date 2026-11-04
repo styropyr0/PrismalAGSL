@@ -2,6 +2,7 @@ package com.styropyr0.prismal.internal
 
 import android.util.Log
 import android.view.View
+import androidx.annotation.Keep
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.node.RootForTest
@@ -26,6 +27,8 @@ import java.util.WeakHashMap
  *
  * Release builds keep those names through the library's consumer ProGuard rules.
  */
+
+@Keep
 internal object PrismalPlatformMagnifierBridge {
     private const val TAG = "PrismalMagnifier"
     private const val POSITION_KEY_NAME = "MagnifierPositionInRoot"
