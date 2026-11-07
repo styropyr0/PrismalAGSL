@@ -139,7 +139,6 @@ fun PlayTabContent(
             val stageWidthPx = constraints.maxWidth.toFloat()
             val stageHeightPx = constraints.maxHeight.toFloat()
 
-            // Reset position whenever a different widget is picked.
             key(selected) {
                 DraggableStageItem(
                     axes = selected.axes,
@@ -170,7 +169,6 @@ private fun DraggableStageItem(
     stageHeightPx: Float,
     content: @Composable () -> Unit,
 ) {
-    // Offset from the stage center.
     var delta by remember { mutableStateOf(Offset.Zero) }
     var size by remember { mutableStateOf(IntSize.Zero) }
     var atEdge by remember { mutableStateOf(false) }
@@ -194,7 +192,6 @@ private fun DraggableStageItem(
                 .onSizeChanged { size = it }
                 .offset { IntOffset(delta.x.roundToInt(), delta.y.roundToInt()) }
                 .pointerInput(axes, stageWidthPx, stageHeightPx) {
-                    // Tick when a drag starts and when the item bumps into a stage edge.
                     fun moveBy(amount: Offset) {
                         val target = delta + amount
                         val clamped = clamp(target)
@@ -447,7 +444,6 @@ private fun PlayWidgetContent(
                 PrismalGlassSlider(
                     value = { value },
                     onValueChange = {
-                        // Tick every 5% and when reaching either end.
                         val crossedStep = (it * 20).roundToInt() != (value * 20).roundToInt()
                         val hitEnd = (it <= 0f && value > 0f) || (it >= 1f && value < 1f)
                         if (crossedStep || hitEnd) haptics.scrubTick()
@@ -479,7 +475,6 @@ private fun PlayWidgetContent(
                 PrismalRangeSlider(
                     value = { range },
                     onValueChange = {
-                        // Tick every 25 units on whichever thumb moved.
                         fun step(v: Float) = (v / 25f).roundToInt()
                         if (step(it.start) != step(range.start) ||
                             step(it.endInclusive) != step(range.endInclusive)

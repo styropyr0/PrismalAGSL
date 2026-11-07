@@ -740,7 +740,6 @@ private fun PlaygroundBackdrop(
 
 @Composable
 private fun DefaultPlaygroundBackdrop(modifier: Modifier = Modifier) {
-    // Only used while no custom image is set; follows the system theme.
     val wallpaper = if (isSystemInDarkTheme()) R.drawable.default_wallpaper
     else R.drawable.default_wallpaper_light
     Image(
