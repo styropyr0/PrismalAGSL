@@ -375,6 +375,7 @@ private fun PlayWidgetContent(
                     index = it
                 },
                 backdrop = backdrop,
+                textStyle = IosTheme.segmentedLabel,
                 luminance = luminance,
                 specular = glassParams.specularProvider(),
                 modifier = Modifier.width(wide),

@@ -140,7 +140,7 @@ fun CatalogPlaygroundScreen() {
                             specular = glassParams.specularProvider(),
                             dropletContentTint = if (isLightTheme) Color.Black else Color.White,
                             renderWithLowOverhead = !isHighPerformanceDevice,
-                            modifier = Modifier.padding(horizontal = 40.dp, vertical = 15.dp)
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 15.dp)
                         ) {
                             IosTabItem(
                                 index = PlaygroundTab.Home.ordinal,
@@ -307,7 +307,7 @@ private fun RowScope.IosTabItem(index: Int, icon: ImageVector, label: String, on
         Icon(
             imageVector = icon,
             contentDescription = label,
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(21.dp),
             tint = if (selected) selectedColor else unselectedColor
         )
         Text(
@@ -366,6 +366,7 @@ private fun CatalogTabContent(
                     selectedIndex = segmentIndex,
                     onSelected = { segmentIndex = it },
                     backdrop = backdrop,
+                    textStyle = IosTheme.segmentedLabel,
                     luminance = luminance,
                     specular = glassParams.specularProvider(),
                 )
@@ -602,6 +603,7 @@ private fun CatalogTabContent(
                     if (index > 0) PrismalGlassMenuDivider()
                     PrismalGlassMenuItem(
                         text = label,
+                        textStyle = IosTheme.menuItem,
                         selected = index == sortIndex,
                         onClick = {
                             sortIndex = index

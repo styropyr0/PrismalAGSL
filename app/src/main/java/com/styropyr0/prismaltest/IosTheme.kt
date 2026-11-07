@@ -96,6 +96,16 @@ object IosTheme {
             fontWeight = FontWeight.SemiBold,
         )
 
+    val segmentedLabel: TextStyle
+        @Composable get() = body.copy(
+            fontSize = 15.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+
+    val menuItem: TextStyle
+        @Composable get() = body
+
     val sectionHeader: TextStyle
         @Composable get() = footnote.copy(
             fontWeight = FontWeight.Normal,
@@ -174,21 +184,21 @@ fun PrismalTestTheme(
 
     val baseline = Typography()
     val typography = Typography(
-        displayLarge = baseline.displayLarge.copy(fontFamily = GeistFontFamily),
-        displayMedium = baseline.displayMedium.copy(fontFamily = GeistFontFamily),
-        displaySmall = baseline.displaySmall.copy(fontFamily = GeistFontFamily),
-        headlineLarge = baseline.headlineLarge.copy(fontFamily = GeistFontFamily),
-        headlineMedium = baseline.headlineMedium.copy(fontFamily = GeistFontFamily),
-        headlineSmall = baseline.headlineSmall.copy(fontFamily = GeistFontFamily),
-        titleLarge = baseline.titleLarge.copy(fontFamily = GeistFontFamily),
-        titleMedium = baseline.titleMedium.copy(fontFamily = GeistFontFamily),
-        titleSmall = baseline.titleSmall.copy(fontFamily = GeistFontFamily),
-        bodyLarge = baseline.bodyLarge.copy(fontFamily = GeistFontFamily),
-        bodyMedium = baseline.bodyMedium.copy(fontFamily = GeistFontFamily),
-        bodySmall = baseline.bodySmall.copy(fontFamily = GeistFontFamily),
-        labelLarge = baseline.labelLarge.copy(fontFamily = GeistFontFamily),
-        labelMedium = baseline.labelMedium.copy(fontFamily = GeistFontFamily),
-        labelSmall = baseline.labelSmall.copy(fontFamily = GeistFontFamily)
+        displayLarge = baseline.displayLarge.copy(fontFamily = InterFontFamily),
+        displayMedium = baseline.displayMedium.copy(fontFamily = InterFontFamily),
+        displaySmall = baseline.displaySmall.copy(fontFamily = InterFontFamily),
+        headlineLarge = baseline.headlineLarge.copy(fontFamily = InterFontFamily),
+        headlineMedium = baseline.headlineMedium.copy(fontFamily = InterFontFamily),
+        headlineSmall = baseline.headlineSmall.copy(fontFamily = InterFontFamily),
+        titleLarge = baseline.titleLarge.copy(fontFamily = InterFontFamily),
+        titleMedium = baseline.titleMedium.copy(fontFamily = InterFontFamily),
+        titleSmall = baseline.titleSmall.copy(fontFamily = InterFontFamily),
+        bodyLarge = baseline.bodyLarge.copy(fontFamily = InterFontFamily),
+        bodyMedium = baseline.bodyMedium.copy(fontFamily = InterFontFamily),
+        bodySmall = baseline.bodySmall.copy(fontFamily = InterFontFamily),
+        labelLarge = baseline.labelLarge.copy(fontFamily = InterFontFamily),
+        labelMedium = baseline.labelMedium.copy(fontFamily = InterFontFamily),
+        labelSmall = baseline.labelSmall.copy(fontFamily = InterFontFamily)
     )
 
     CompositionLocalProvider(LocalIosColors provides ios) {
