@@ -63,7 +63,6 @@ import com.styropyr0.prismal.components.PrismalRulerSelector
 import com.styropyr0.prismal.components.PrismalSegmentedControl
 import com.styropyr0.prismal.components.prismalMenuAnchor
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
-import com.styropyr0.prismal.shapes.PrismalCapsule
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 import com.styropyr0.prismal.sources.prismalGlassLayer
