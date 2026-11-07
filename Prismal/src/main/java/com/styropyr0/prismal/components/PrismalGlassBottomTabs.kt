@@ -28,6 +28,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Paint
@@ -77,7 +79,7 @@ import kotlin.math.sign
  * @param tintDropletContent When true, tints tab content sampled by the selection
  *   droplet. Set to false to keep the colors from [content].
  * @param dropletContentTint Color used when [tintDropletContent] is true. When `null`,
- *   defaults to iOS-style blue (`#0088FF` light / `#0091FF` dark). Pass any [Color]
+ *   defaults to iOS-style blue (`#007AFF` light / `#409CFF` dark). Pass any [Color]
  *   (e.g. [Color.Black]) to override.
  * @param specular The specular setting for the base pill
  * @param blurRadius Blur of the backdrop behind the bar.
@@ -92,13 +94,18 @@ import kotlin.math.sign
  *   values also make the chromatic aberration more visible.
  * @param dropletContentScaleY Vertical scale of the tab row seen through the droplet while
  *   pressed, in `[0, 1]`. Lower values show a flatter, more shrunken bar; `1f` disables it.
+ * @param dropletContentScaleX Horizontal counterpart of [dropletContentScaleY]. Set both to the
+ *   same value (for example `0.86f`) to shrink the bar uniformly around the droplet's center, so
+ *   the backdrop shows around the shrunken bar, including past its ends at either extreme.
+ *   `1f` leaves the width untouched. The shrink only applies where the refracting lens
+ *   is available (API 33+); on lower tiers the droplet keeps showing the bar at its normal size.
  * @param renderWithLowOverhead How the droplet grows / squashes while pressed or dragged.
  *   `true` (default) scales its graphics layer: cheap and perfectly smooth, but the
  *   rasterized lens is resampled, so the pressed droplet looks slightly soft. `false`
  *   re-lays the droplet out at its animated size and snaps it to whole pixels, so it renders
  *   1:1 and sharp, at the cost of a relayout per animation frame (can stutter on weaker
  *   devices).
- * @param pressGlow Intensity of the white press glow on the bar in `[0, 1]`.
+ * @param pressGlow Intensity of the brightening gradient on the droplet while pressed, in `[0, 1]`.
  */
 @Composable
 fun PrismalGlassBottomTabs(
@@ -112,20 +119,21 @@ fun PrismalGlassBottomTabs(
     tintDropletContent: Boolean = true,
     dropletContentTint: Color? = null,
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
-    blurRadius: Dp = 2.dp,
-    refractionHeight: Dp = 24.dp,
-    refractionAmount: Dp = 24.dp,
+    blurRadius: Dp = 4.dp,
+    refractionHeight: Dp = 16.dp,
+    refractionAmount: Dp = 28.dp,
     dropletBlurRadius: Dp? = null,
-    dropletChromaticAberration: Float = 0.7f,
-    dropletRefractionHeight: Dp = 20.dp,
-    dropletRefractionAmount: Dp = 10.dp,
-    pressGlow: Float = 1f,
-    dropletContentScaleY: Float = 0.90f,
+    dropletChromaticAberration: Float = 0.45f,
+    dropletRefractionHeight: Dp = 14.dp,
+    dropletRefractionAmount: Dp = 14.dp,
+    pressGlow: Float = 0.7f,
+    dropletContentScaleY: Float = 0.92f,
+    dropletContentScaleX: Float = 0.92f,
     renderWithLowOverhead: Boolean = true,
     content: @Composable RowScope.() -> Unit
 ) {
     val isLightTheme = !isSystemInDarkTheme()
-    val effectiveDropletTint = dropletContentTint ?: if (isLightTheme) Color(0xFF0088FF) else Color(0xFF0091FF)
+    val effectiveDropletTint = dropletContentTint ?: if (isLightTheme) Color(0xFF007AFF) else Color(0xFF409CFF)
     val containerColor = if (isLightTheme) Color(0xFFFAFAFA).copy(0.4f)
     else Color(0xFF121212).copy(0.4f)
 
@@ -212,9 +220,18 @@ fun PrismalGlassBottomTabs(
                 }
         }
 
+        val lensAvailable = PrismalGlass.pipeline == PrismalGlassPipeline.Liquid
+        val dropletContentShrink = if (lensAvailable) {
+            ((dropletContentScaleX + dropletContentScaleY) / 2f).fastCoerceIn(0.5f, 1f)
+        } else {
+            1f
+        }
         val shrunkTabsBackdrop = rememberPrismalWrappedSource(tabsBackdrop) { drawTabs ->
-            val progress = dampedDragAnimation.pressProgress
-            scale(1f, lerp(1f, dropletContentScaleY.fastCoerceIn(0f, 1f), progress)) {
+            val progress = if (lensAvailable) dampedDragAnimation.pressProgress else 0f
+            scale(
+                scaleX = lerp(1f, dropletContentScaleX.fastCoerceIn(0f, 1f), progress),
+                scaleY = lerp(1f, dropletContentScaleY.fastCoerceIn(0f, 1f), progress)
+            ) {
                 drawTabs()
             }
         }
@@ -268,7 +285,6 @@ fun PrismalGlassBottomTabs(
                         },
                         onDrawSurface = { drawRect(containerColor) }
                     )
-                    .then(interactivePrismalSpecular.modifier)
                     .height(64.dp)
                     .fillMaxWidth()
                     .padding(4.dp),
@@ -276,59 +292,65 @@ fun PrismalGlassBottomTabs(
                 content = content
             )
 
-            Row(
-                Modifier
-                    .clearAndSetSemantics {}
-                    .alpha(0f)
-                    .prismalGlassLayer(tabsBackdrop)
-                    .graphicsLayer {
-                        translationX = panelOffset
-                    }
-                    .drawPrismalGlass(
-                        backdrop = backdrop,
-                        shape = { PrismalCapsule() },
-                        effects = {
-                            applyPrismalGlassEffects(
-                                density = density,
-                                adaptiveLuminance = adaptiveLuminance,
-                                luminance = luminance(),
-                                blurRadiusPx = with(density) { (dropletBlurRadius ?: blurRadius).toPx() }.let {
-                                    if (adaptiveLuminance) it.coerceAtLeast(0.01f) else it
-                                },
-                                refractionHeightPx = with(density) { refractionHeight.toPx() },
-                                refractionAmountPx = with(density) { refractionAmount.toPx() }
-                            )
-                        },
-                        specular = {
-                            val progress = dampedDragAnimation.pressProgress
-                            PrismalSpecular.Default.copy(alpha = progress)
-                        },
-                        onDrawSurface = { drawRect(containerColor) }
-                    )
-                    .then(interactivePrismalSpecular.modifier)
-                    .height(56.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp)
-                    .then(
-                        if (tintDropletContent) {
-                            Modifier.drawWithContent {
-                                val paint = Paint().apply {
-                                    colorFilter = ColorFilter.tint(effectiveDropletTint)
-                                }
-                                drawContext.canvas.saveLayer(
-                                    Rect(0f, 0f, size.width, size.height),
-                                    paint
-                                )
-                                drawContent()
-                                drawContext.canvas.restore()
-                            }
-                        } else {
-                            Modifier
+            CompositionLocalProvider(
+                LocalPrismalBottomTabScale provides {
+                    lerp(1f, DropletIconScale / dropletContentShrink, dampedDragAnimation.pressProgress)
+                }
+            ) {
+                Row(
+                    Modifier
+                        .clearAndSetSemantics {}
+                        .alpha(0f)
+                        .prismalGlassLayer(tabsBackdrop)
+                        .graphicsLayer {
+                            translationX = panelOffset
                         }
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-                content = content
-            )
+                        .drawPrismalGlass(
+                            backdrop = backdrop,
+                            shape = { PrismalCapsule() },
+                            effects = {
+                                applyPrismalGlassEffects(
+                                    density = density,
+                                    adaptiveLuminance = adaptiveLuminance,
+                                    luminance = luminance(),
+                                    blurRadiusPx = with(density) { (dropletBlurRadius ?: blurRadius).toPx() }.let {
+                                        if (adaptiveLuminance) it.coerceAtLeast(0.01f) else it
+                                    },
+                                    refractionHeightPx = with(density) { refractionHeight.toPx() },
+                                    refractionAmountPx = with(density) { refractionAmount.toPx() }
+                                )
+                            },
+                            specular = {
+                                val progress = dampedDragAnimation.pressProgress
+                                PrismalSpecular.Default.copy(alpha = progress)
+                            },
+                            onDrawSurface = { drawRect(containerColor) }
+                        )
+                        .then(interactivePrismalSpecular.modifier)
+                        .height(56.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp)
+                        .then(
+                            if (tintDropletContent) {
+                                Modifier.drawWithContent {
+                                    val paint = Paint().apply {
+                                        colorFilter = ColorFilter.tint(effectiveDropletTint)
+                                    }
+                                    drawContext.canvas.saveLayer(
+                                        Rect(0f, 0f, size.width, size.height),
+                                        paint
+                                    )
+                                    drawContent()
+                                    drawContext.canvas.restore()
+                                }
+                            } else {
+                                Modifier
+                            }
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    content = content
+                )
+            }
         }
 
         Box(
@@ -404,6 +426,18 @@ fun PrismalGlassBottomTabs(
                             alpha = 1f - progress
                         )
                         drawRect(Color.Black.copy(alpha = 0.03f * progress))
+                        val glow = progress * pressGlow.fastCoerceIn(0f, 1f)
+                        if (glow > 0f) {
+                            drawRect(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.White.copy(alpha = 0.30f * glow),
+                                        Color.White.copy(alpha = 0.06f * glow)
+                                    )
+                                ),
+                                blendMode = BlendMode.Plus
+                            )
+                        }
                     }
                 )
         )
@@ -411,6 +445,7 @@ fun PrismalGlassBottomTabs(
 }
 
 private const val DropletPressedScale = 78f / 56f
+private const val DropletIconScale = 1.05f
 private const val RestingInsetAlpha = 0.5f
 private const val RestingInsetRadiusFraction = 0.75f
 

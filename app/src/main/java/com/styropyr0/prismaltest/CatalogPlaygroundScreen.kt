@@ -48,7 +48,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.styropyr0.prismal.components.LocalPrismalBottomTabHighlightedIndex
 import com.styropyr0.prismal.components.PrismalGlassBottomTab
 import com.styropyr0.prismal.components.PrismalGlassBottomTabs
 import com.styropyr0.prismal.components.PrismalGlassButton
@@ -107,6 +106,7 @@ fun CatalogPlaygroundScreen() {
     )
     val luminance = { adaptiveLuminance.luminance }
     val isHighPerformanceDevice = rememberIsHighPerformanceDevice()
+    val haptics = rememberPlaygroundHaptics()
 
     val pickBackgroundImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -134,40 +134,38 @@ fun CatalogPlaygroundScreen() {
                     bottomBar = {
                         PrismalGlassBottomTabs(
                             selectedTabIndex = { selectedTab },
-                            onTabSelected = { selectedTab = it },
+                            onTabSelected = {
+                                if (it != selectedTab) haptics.selectionTick()
+                                selectedTab = it
+                            },
                             backdrop = backdropLayer,
                             tabsCount = 5,
                             specular = glassParams.specularProvider(),
-                            dropletContentTint = if (isLightTheme) Color.Black else Color.White,
+                            pressGlow = if (isLightTheme) 0.7f else 0.25f,
                             renderWithLowOverhead = !isHighPerformanceDevice,
-                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 15.dp)
+                            modifier = Modifier.padding(horizontal = 30.dp, vertical = 15.dp)
                         ) {
                             IosTabItem(
-                                index = PlaygroundTab.Home.ordinal,
                                 icon = R.drawable.ic_home.asIcon(),
                                 label = "Home",
                                 onClick = { selectedTab = PlaygroundTab.Home.ordinal }
                             )
                             IosTabItem(
-                                index = PlaygroundTab.Search.ordinal,
                                 icon = R.drawable.ic_search.asIcon(),
                                 label = "Search",
                                 onClick = { selectedTab = PlaygroundTab.Search.ordinal }
                             )
                             IosTabItem(
-                                index = PlaygroundTab.Search.ordinal,
                                 icon = R.drawable.ic_game.asIcon(),
                                 label = "Play",
                                 onClick = { selectedTab = PlaygroundTab.Play.ordinal }
                             )
                             IosTabItem(
-                                index = PlaygroundTab.Profile.ordinal,
                                 icon = R.drawable.ic_user.asIcon(),
                                 label = "Profile",
                                 onClick = { selectedTab = PlaygroundTab.Profile.ordinal }
                             )
                             IosTabItem(
-                                index = PlaygroundTab.Settings.ordinal,
                                 icon = R.drawable.ic_play.asIcon(),
                                 label = "Settings",
                                 onClick = { selectedTab = PlaygroundTab.Settings.ordinal }
@@ -295,25 +293,24 @@ fun CatalogPlaygroundScreen() {
     }
 }
 
+private fun tabUnselectedColor(isLightTheme: Boolean): Color =
+    if (isLightTheme) Color.Black else Color.White
+
 @Composable
-private fun RowScope.IosTabItem(index: Int, icon: ImageVector, label: String, onClick: () -> Unit) {
-    val isDark = isSystemInDarkTheme()
-    val selectedColor = if (isDark) Color.White else Color.Black
-    val unselectedColor = if (isDark) Color.White else Color.Black
-    val highlightedIndex = LocalPrismalBottomTabHighlightedIndex.current()
-    val selected = highlightedIndex == index
+private fun RowScope.IosTabItem(icon: ImageVector, label: String, onClick: () -> Unit) {
+    val color = tabUnselectedColor(!isSystemInDarkTheme())
 
     PrismalGlassBottomTab(onClick = onClick) {
         Icon(
             imageVector = icon,
             contentDescription = label,
-            modifier = Modifier.size(21.dp),
-            tint = if (selected) selectedColor else unselectedColor
+            modifier = Modifier.size(27.dp),
+            tint = color
         )
         Text(
             text = label,
             style = IosTheme.tabLabel,
-            color = if (selected) selectedColor else unselectedColor,
+            color = color,
             textAlign = TextAlign.Center
         )
     }

@@ -1,46 +1,67 @@
 package com.styropyr0.prismaltest
 
+import android.os.Build
+import android.view.HapticFeedbackConstants
+import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.hapticfeedback.HapticFeedback
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 
-/** App-wide haptics switch, controlled from the Profile tab. */
 object PlaygroundHapticsSettings {
     var enabled by mutableStateOf(true)
 }
 
-/** Semantic haptic events used by the playground widgets. */
 @Stable
-class PlaygroundHaptics(private val feedback: HapticFeedback) {
-    private fun perform(type: HapticFeedbackType) {
-        if (PlaygroundHapticsSettings.enabled) feedback.performHapticFeedback(type)
+class PlaygroundHaptics(private val view: View) {
+    private fun perform(constant: Int) {
+        if (PlaygroundHapticsSettings.enabled) view.performHapticFeedback(constant)
     }
 
-    /** A discrete selection changed (segments, selector items, stepper). */
-    fun selectionTick() = perform(HapticFeedbackType.SegmentTick)
+    private fun perform(modern: Int, minSdk: Int, fallback: Int) {
+        perform(if (Build.VERSION.SDK_INT >= minSdk) modern else fallback)
+    }
 
-    /** Fine-grained step while scrubbing (ruler, sliders). */
-    fun scrubTick() = perform(HapticFeedbackType.SegmentFrequentTick)
+    fun selectionTick() = perform(
+        HapticFeedbackConstants.SEGMENT_TICK,
+        Build.VERSION_CODES.UPSIDE_DOWN_CAKE,
+        HapticFeedbackConstants.CLOCK_TICK
+    )
 
-    /** A switch flipped. */
-    fun toggle(on: Boolean) =
-        perform(if (on) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
+    fun scrubTick() = perform(
+        HapticFeedbackConstants.SEGMENT_FREQUENT_TICK,
+        Build.VERSION_CODES.UPSIDE_DOWN_CAKE,
+        HapticFeedbackConstants.CLOCK_TICK
+    )
 
-    /** An action completed (button press). */
-    fun confirm() = perform(HapticFeedbackType.Confirm)
+    fun toggle(on: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            perform(
+                if (on) HapticFeedbackConstants.TOGGLE_ON else HapticFeedbackConstants.TOGGLE_OFF
+            )
+        } else {
+            perform(HapticFeedbackConstants.VIRTUAL_KEY)
+        }
+    }
 
-    /** A drag began, or hit a boundary. */
-    fun gestureStart() = perform(HapticFeedbackType.GestureThresholdActivate)
+    fun confirm() = perform(
+        HapticFeedbackConstants.CONFIRM,
+        Build.VERSION_CODES.R,
+        HapticFeedbackConstants.VIRTUAL_KEY
+    )
+
+    fun gestureStart() = perform(
+        HapticFeedbackConstants.GESTURE_START,
+        Build.VERSION_CODES.R,
+        HapticFeedbackConstants.VIRTUAL_KEY
+    )
 }
 
 @Composable
 fun rememberPlaygroundHaptics(): PlaygroundHaptics {
-    val feedback = LocalHapticFeedback.current
-    return remember(feedback) { PlaygroundHaptics(feedback) }
+    val view = LocalView.current
+    return remember(view) { PlaygroundHaptics(view) }
 }

@@ -607,13 +607,13 @@ private fun RowScope.TabItem(index: Int, icon: ImageVector, label: String) {
 
 | Parameter | Default | Controls |
 |-----------|---------|----------|
-| `blurRadius` | `2.dp` | Blur of the backdrop behind the bar |
-| `refractionHeight` / `refractionAmount` | `24.dp` / `24.dp` | Edge lens of the bar |
+| `blurRadius` | `4.dp` | Blur of the backdrop behind the bar |
+| `refractionHeight` / `refractionAmount` | `16.dp` / `28.dp` | Edge lens of the bar |
 | `dropletBlurRadius` | `null` | Blur of the bar seen through the droplet; `null` = same as `blurRadius` |
-| `dropletRefractionHeight` / `dropletRefractionAmount` | `20.dp` / `10.dp` | Droplet's own edge lens while pressed |
-| `dropletChromaticAberration` | `0.7f` | Droplet color fringing (`0f` = off, above `1f` exaggerates) |
-| `dropletContentScaleY` | `0.9f` | Vertical shrink of the bar seen through the droplet while pressed (`1f` = off) |
-| `pressGlow` | `1f` | White press glow on the bar, `0f`–`1f` |
+| `dropletRefractionHeight` / `dropletRefractionAmount` | `14.dp` / `14.dp` | Droplet's own edge lens while pressed |
+| `dropletChromaticAberration` | `0.45f` | Droplet color fringing (`0f` = off, above `1f` exaggerates) |
+| `dropletContentScaleX` / `dropletContentScaleY` | `0.92f` / `0.92f` | Shrink of the bar seen through the droplet while pressed, so the backdrop shows around it; Liquid tier only (`1f` = off) |
+| `pressGlow` | `0.7f` | Brightening gradient on the droplet while pressed, `0f`–`1f` |
 | `renderWithLowOverhead` | `true` | `true`: droplet grows via layer scale (smooth, cheap, slightly soft when pressed). `false`: droplet is re-laid out at its animated size (sharp, relayout per frame — use on capable devices) |
 
 ---
