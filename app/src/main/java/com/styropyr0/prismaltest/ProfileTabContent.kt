@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -24,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.components.PrismalGlassButton
-import com.styropyr0.prismal.components.PrismalSegmentedControl
 import com.styropyr0.prismal.shapes.PrismalRoundedRectangle
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 
@@ -38,12 +36,10 @@ fun ProfileTabContent(
 ) {
     var pushEnabled by remember { mutableStateOf(true) }
     var reduceMotion by remember { mutableStateOf(false) }
-    var layoutIndex by remember { mutableIntStateOf(0) }
 
     IosGroupedScreen(modifier = modifier, contentPadding = contentPadding) {
         item { IosLargeTitle(title = "Profile") }
 
-        // Identity card
         item {
             PlaygroundGlassSurface(
                 backdrop = backdrop,
@@ -98,7 +94,6 @@ fun ProfileTabContent(
             }
         }
 
-        // Stats
         item {
             Row(
                 modifier = Modifier
@@ -112,7 +107,6 @@ fun ProfileTabContent(
             }
         }
 
-        // Account
         item {
             IosSectionHeader("Account")
             IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
@@ -124,7 +118,6 @@ fun ProfileTabContent(
             }
         }
 
-        // Preferences
         item {
             IosSectionHeader("Preferences")
             IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {
@@ -154,24 +147,11 @@ fun ProfileTabContent(
         }
 
         item {
-            IosSectionHeader("Layout")
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = IosLayout.screenHorizontal)
-            ) {
-                PrismalSegmentedControl(
-                    labels = listOf("Compact", "Comfortable", "Spacious"),
-                    selectedIndex = layoutIndex,
-                    onSelected = { layoutIndex = it },
-                    backdrop = backdrop,
-                    luminance = luminance,
-                    specular = glassParams.specularProvider(),
-                )
-            }
+            IosSectionHeader("Device")
+            DeviceSensorsSection(backdrop = backdrop, params = glassParams, luminance = luminance)
+            IosSectionFooter("Live readings. No permissions needed; missing sensors are hidden.")
         }
 
-        // About + sign out
         item {
             IosSectionHeader("About")
             IosGlassGroup(backdrop = backdrop, params = glassParams, luminance = luminance) {

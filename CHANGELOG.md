@@ -5,6 +5,34 @@ All notable changes to Prismal are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 follows [Semantic Versioning](https://semver.org/).
 
+## [1.0.7] - 2026-11-07
+
+### Added
+- Demo app: the Play tab now has a widget picker built on `PrismalHorizontalSelector`. Pick any
+  component and drag it around a full-screen stage. Components with their own horizontal gesture
+  (segmented control, selector, ruler, sliders, toggle) drag vertically only.
+- Demo app: new refracting droplet widgets — a circular droplet, a heavy-refraction lens and a
+  pill droplet.
+- Demo app: haptic feedback on every Play widget, controlled by the new Haptic Feedback toggle in
+  Profile.
+- Demo app: default wallpapers that follow the system theme (ocean in dark mode, lamp in light
+  mode). They only apply while no custom image is set.
+
+### Changed
+- `PrismalGlassBottomTabs`: the droplet thumb now keeps a soft inner shadow at rest and deepens it
+  while pressed or dragged.
+- Demo app: Profile tab shows live, permission-free device readings (battery, tilt, light,
+  pressure).
+- Demo app: redesigned the Profile tab with an identity card, stat tiles, account, preferences
+  and layout sections.
+- Demo app: replaced the gradient default background with photo wallpapers.
+
+## [1.0.6] - 2026-11-04
+
+### Fixed
+- Crash when dismissing the system text magnifier in minified (R8/ProGuard) builds, caused by the
+  runtime proxy being obfuscated. Added the required consumer keep rules.
+
 ## [1.0.5] - 2026-11-04
 
 ### Added
@@ -76,6 +104,8 @@ follows [Semantic Versioning](https://semver.org/).
   inset, plus the first set of glass components.
 - Backward compatibility for older Android versions.
 
+[1.0.7]: https://github.com/styropyr0/PrismalAGSL/compare/v1.0.6...v1.0.7
+[1.0.6]: https://github.com/styropyr0/PrismalAGSL/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/styropyr0/PrismalAGSL/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/styropyr0/PrismalAGSL/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/styropyr0/PrismalAGSL/compare/v1.0.2...v1.0.3

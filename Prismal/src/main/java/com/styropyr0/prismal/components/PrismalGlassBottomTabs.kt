@@ -383,8 +383,9 @@ fun PrismalGlassBottomTabs(
                     depthInset = {
                         val progress = dampedDragAnimation.pressProgress
                         PrismalDepthInset(
-                            radius = 8.dp * progress * if (renderWithLowOverhead) 1f else dampedDragAnimation.scaleY,
-                            alpha = progress
+                            radius = 8.dp * lerp(RestingInsetRadiusFraction, 1f, progress) *
+                                if (renderWithLowOverhead) 1f else dampedDragAnimation.scaleY,
+                            alpha = lerp(RestingInsetAlpha, 1f, progress)
                         )
                     },
                     layerBlock = if (renderWithLowOverhead) {
@@ -410,6 +411,8 @@ fun PrismalGlassBottomTabs(
 }
 
 private const val DropletPressedScale = 78f / 56f
+private const val RestingInsetAlpha = 0.5f
+private const val RestingInsetRadiusFraction = 0.75f
 
 private fun dropletScale(motion: PrismalSpringMotion): Pair<Float, Float> {
     val velocity = motion.velocity / 10f

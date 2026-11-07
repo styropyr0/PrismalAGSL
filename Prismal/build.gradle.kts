@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.github.styropyr0"
-version = "1.0.6"
+version = "1.0.7"
 
 android {
     namespace = "com.styropyr0.prismal"

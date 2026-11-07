@@ -15,8 +15,8 @@ android {
         applicationId = "com.styropyr0.prismaltest"
         minSdk = 25
         targetSdk = 37
-        versionCode = 4
-        versionName = "1.0.6"
+        versionCode = 5
+        versionName = "1.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

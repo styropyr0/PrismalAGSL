@@ -873,7 +873,12 @@ The `:app` module in this repository is a catalog playground (not published to J
 - Glass buttons, toggles, sliders, and progress bars
 - Horizontal selector (camera-mode style picker)
 - Ruler selector (tick / measurement picker)
-- Gradient glass panel and profile avatar
+- Play tab: pick any widget with the horizontal selector and drag it around a full-screen stage
+  (widgets with their own horizontal gesture drag vertically only), including refracting droplet,
+  heavy-lens and pill-droplet variants
+- Haptic feedback on every Play widget, toggled from Profile
+- Profile tab with glass identity card, stat tiles and preferences
+- Theme-aware default wallpapers (ocean in dark mode, lamp in light mode) when no custom image is set
 - Bottom tab bar with customizable droplet tint; uses the sharper `renderWithLowOverhead = false` droplet on capable devices
 - Search field with the glass text magnifier
 - Custom wallpaper picker with persistence across app restarts
