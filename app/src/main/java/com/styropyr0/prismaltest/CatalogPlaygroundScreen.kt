@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -739,69 +740,15 @@ private fun PlaygroundBackdrop(
 
 @Composable
 private fun DefaultPlaygroundBackdrop(modifier: Modifier = Modifier) {
-    val isDark = isSystemInDarkTheme()
-    val base = if (isDark) {
-        listOf(Color(0xFF0B0B0F), Color(0xFF15151A), Color(0xFF1C1C22))
-    } else {
-        listOf(Color(0xFFDCE8FF), Color(0xFFE8DDF8), Color(0xFFF5E6EF))
-    }
-
-    Box(
-        modifier.background(
-            Brush.linearGradient(
-                colors = base,
-                start = Offset(0f, 0f),
-                end = Offset(900f, 1600f)
-            )
-        )
-    ) {
-        Box(
-            Modifier
-                .align(Alignment.TopStart)
-                .offset(x = (-40).dp, y = 80.dp)
-                .size(280.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF64D2FF).copy(alpha = if (isDark) 0.22f else 0.45f))
-        )
-        Box(
-            Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = 20.dp, y = 180.dp)
-                .size(240.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFBF5AF2).copy(alpha = if (isDark) 0.18f else 0.38f))
-        )
-        Box(
-            Modifier
-                .align(Alignment.Center)
-                .size(320.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF5E5CE6).copy(alpha = if (isDark) 0.12f else 0.28f))
-        )
-        Box(
-            Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 24.dp, bottom = 120.dp)
-                .size(200.dp)
-                .clip(PrismalCapsule())
-                .background(Color(0xFF32D74B).copy(alpha = if (isDark) 0.14f else 0.32f))
-        )
-        Box(
-            Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 40.dp)
-                .size(260.dp)
-                .clip(PrismalRoundedRectangle(80.dp))
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            Color(0xFF0A84FF).copy(alpha = if (isDark) 0.25f else 0.42f),
-                            Color.Transparent
-                        )
-                    )
-                )
-        )
-    }
+    // Only used while no custom image is set; follows the system theme.
+    val wallpaper = if (isSystemInDarkTheme()) R.drawable.default_wallpaper
+    else R.drawable.default_wallpaper_light
+    Image(
+        painter = painterResource(wallpaper),
+        contentDescription = null,
+        modifier = modifier,
+        contentScale = ContentScale.Crop,
+    )
 }
 
 @Composable
