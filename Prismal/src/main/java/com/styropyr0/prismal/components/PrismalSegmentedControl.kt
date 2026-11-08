@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import com.styropyr0.prismal.interactive.LocalPrismalHapticFeedback
+import com.styropyr0.prismal.internal.rememberPrismalHaptics
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -106,6 +108,7 @@ private val DefaultSegmentedTextStyle = TextStyle(fontSize = 15.sp, fontWeight =
  * @param magnification Scale applied to the content seen through the droplet.
  * @param dropletEffects Replaces the lens's built-in effect stack when non-null.
  * @param specular Edge highlight on the lens; pass `null` to disable.
+ * @param hapticFeedback When true, performs a haptic tick when the selected segment changes.
  */
 @Composable
 fun PrismalSegmentedControl(
@@ -122,6 +125,7 @@ fun PrismalSegmentedControl(
     luminance: () -> Float = { 0.5f },
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current,
 ) {
     val segmentCount = labels.size
     if (segmentCount == 0) return
@@ -153,7 +157,11 @@ fun PrismalSegmentedControl(
         val segmentWidthPx = (constraints.maxWidth - insetPx * 2f) / segmentCount
         val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
         val animationScope = rememberCoroutineScope()
-        val onSelectedState = rememberUpdatedState(onSelected)
+        val haptics = rememberPrismalHaptics(hapticFeedback)
+        val onSelectedState = rememberUpdatedState<(Int) -> Unit> {
+            haptics.tick()
+            onSelected(it)
+        }
         val currentSelectedIndex by rememberUpdatedState(selectedIndex)
         val overdragMaxPx = with(density) { SegmentedOverdragMax.toPx() }
         val overdrag = remember { Animatable(0f) }
@@ -255,7 +263,7 @@ fun PrismalSegmentedControl(
                             role = Role.Tab,
                             onClick = {
                                 lensMotion.animateToValue(index.toFloat())
-                                if (index != selectedIndex) onSelected(index)
+                                if (index != selectedIndex) onSelectedState.value(index)
                             }
                         )
                         .graphicsLayer {

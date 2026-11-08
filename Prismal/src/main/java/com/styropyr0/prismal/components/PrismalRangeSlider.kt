@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import com.styropyr0.prismal.interactive.LocalPrismalHapticFeedback
+import com.styropyr0.prismal.internal.rememberPrismalHaptics
+import com.styropyr0.prismal.internal.hapticStep
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -73,6 +76,7 @@ private const val RangeThumbEnd = 1
  * @param visibilityThreshold Minimum change delta before [onValueChange] fires mid-drag.
  * @param backdrop Source sampled through the track and thumb glass.
  * @param minDistance Minimum gap between the two thumbs, in value units.
+ * @param hapticFeedback When true, performs a haptic tick as either thumb crosses each 2.5% step.
  */
 @Composable
 fun PrismalRangeSlider(
@@ -84,7 +88,8 @@ fun PrismalRangeSlider(
     modifier: Modifier = Modifier,
     minDistance: Float = 0f,
     adaptiveLuminance: Boolean = false,
-    luminance: () -> Float = { 0.5f }
+    luminance: () -> Float = { 0.5f },
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current
 ) {
     val isLightTheme = !isSystemInDarkTheme()
     val accentColor =
@@ -119,6 +124,13 @@ fun PrismalRangeSlider(
         var endTarget by remember { mutableFloatStateOf(initial.endInclusive.coerceIn(valueRange)) }
         var lastReportedStart by remember { mutableFloatStateOf(startTarget) }
         var lastReportedEnd by remember { mutableFloatStateOf(endTarget) }
+        val haptics = rememberPrismalHaptics(hapticFeedback)
+        var lastHapticStart by remember {
+            mutableIntStateOf(hapticStep(startTarget, valueRange.start, valueRange.endInclusive, HapticSteps))
+        }
+        var lastHapticEnd by remember {
+            mutableIntStateOf(hapticStep(endTarget, valueRange.start, valueRange.endInclusive, HapticSteps))
+        }
         var draggingThumb by remember { mutableIntStateOf(-1) }
         var didDrag by remember { mutableStateOf(false) }
         var topThumb by remember { mutableIntStateOf(RangeThumbEnd) }
@@ -131,6 +143,13 @@ fun PrismalRangeSlider(
             ) {
                 lastReportedStart = startTarget
                 lastReportedEnd = endTarget
+                val hapticStart = hapticStep(startTarget, valueRange.start, valueRange.endInclusive, HapticSteps)
+                val hapticEnd = hapticStep(endTarget, valueRange.start, valueRange.endInclusive, HapticSteps)
+                if (hapticStart != lastHapticStart || hapticEnd != lastHapticEnd) {
+                    lastHapticStart = hapticStart
+                    lastHapticEnd = hapticEnd
+                    haptics.scrub()
+                }
                 onValueChangeState.value(startTarget..endTarget)
             }
         }
@@ -388,3 +407,5 @@ private fun RangeThumb(
             .size(40.dp, 24.dp)
     )
 }
+
+private const val HapticSteps = 40

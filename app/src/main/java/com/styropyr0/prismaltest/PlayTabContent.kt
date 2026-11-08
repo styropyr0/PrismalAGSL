@@ -91,7 +91,6 @@ fun PlayTabContent(
     val labels = remember { widgets.map { it.label } }
     var selectedIndex by remember { mutableIntStateOf(0) }
     val selected = widgets[selectedIndex]
-    val haptics = rememberPlaygroundHaptics()
 
     Column(
         modifier = modifier
@@ -109,7 +108,6 @@ fun PlayTabContent(
                 labels = labels,
                 selectedIndex = selectedIndex,
                 onSelected = {
-                    if (it != selectedIndex) haptics.selectionTick()
                     selectedIndex = it
                 },
                 backdrop = backdrop,
@@ -240,7 +238,6 @@ private fun PlayWidgetContent(
     luminance: () -> Float,
 ) {
     val wide = stageWidth * 0.92f
-    val haptics = rememberPlaygroundHaptics()
 
     when (widget) {
         PlayWidget.GlassPanel -> TunableGlassPanel(
@@ -298,7 +295,7 @@ private fun PlayWidgetContent(
         )
 
         PlayWidget.Button -> PrismalGlassButton(
-            onClick = { haptics.confirm() },
+            onClick = {},
             backdrop = backdrop,
             luminance = luminance,
             modifier = Modifier
@@ -321,7 +318,6 @@ private fun PlayWidgetContent(
             PrismalGlassStepper(
                 value = value,
                 onValueChange = {
-                    if (it != value) haptics.selectionTick()
                     value = it
                 },
                 backdrop = backdrop,
@@ -350,7 +346,6 @@ private fun PlayWidgetContent(
                 )
                 PrismalGlassButton(
                     onClick = {
-                        haptics.confirm()
                         progress = ((progress + 0.15f) % 1.05f).coerceAtMost(1f)
                     },
                     backdrop = backdrop,
@@ -371,7 +366,6 @@ private fun PlayWidgetContent(
                 labels = listOf("Day", "Week", "Month", "Year"),
                 selectedIndex = index,
                 onSelected = {
-                    if (it != index) haptics.selectionTick()
                     index = it
                 },
                 backdrop = backdrop,
@@ -391,7 +385,6 @@ private fun PlayWidgetContent(
                 labels = modes,
                 selectedIndex = index,
                 onSelected = {
-                    if (it != index) haptics.selectionTick()
                     index = it
                 },
                 backdrop = backdrop,
@@ -409,7 +402,6 @@ private fun PlayWidgetContent(
             PrismalRulerSelector(
                 value = value,
                 onValueChange = {
-                    if (it != value) haptics.scrubTick()
                     value = it
                 },
                 valueRange = 0..100,
@@ -445,9 +437,6 @@ private fun PlayWidgetContent(
                 PrismalGlassSlider(
                     value = { value },
                     onValueChange = {
-                        val crossedStep = (it * 20).roundToInt() != (value * 20).roundToInt()
-                        val hitEnd = (it <= 0f && value > 0f) || (it >= 1f && value < 1f)
-                        if (crossedStep || hitEnd) haptics.scrubTick()
                         value = it
                     },
                     valueRange = 0f..1f,
@@ -476,12 +465,6 @@ private fun PlayWidgetContent(
                 PrismalRangeSlider(
                     value = { range },
                     onValueChange = {
-                        fun step(v: Float) = (v / 25f).roundToInt()
-                        if (step(it.start) != step(range.start) ||
-                            step(it.endInclusive) != step(range.endInclusive)
-                        ) {
-                            haptics.scrubTick()
-                        }
                         range = it
                     },
                     valueRange = 0f..1000f,
@@ -498,7 +481,6 @@ private fun PlayWidgetContent(
             PrismalGlassToggle(
                 selected = { on },
                 onSelect = {
-                    if (it != on) haptics.toggle(it)
                     on = it
                 },
                 backdrop = backdrop,

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import com.styropyr0.prismal.interactive.LocalPrismalHapticFeedback
+import com.styropyr0.prismal.internal.rememberPrismalHaptics
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -70,6 +72,7 @@ private const val StepperRepeatIntervalMs = 80L
  * @param glyphColor Color of the − and + glyphs. Defaults to black / white by theme.
  * @param effects Replaces the capsule's built-in effect stack when non-null.
  * @param specular Edge highlight for the capsule; pass `null` to disable.
+ * @param hapticFeedback When true, performs a haptic tick on every step.
  */
 @Composable
 fun PrismalGlassStepper(
@@ -87,6 +90,7 @@ fun PrismalGlassStepper(
     luminance: () -> Float = { 0.5f },
     effects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current,
 ) {
     val density = LocalDensity.current
     val isLightTheme = !isSystemInDarkTheme()
@@ -99,7 +103,11 @@ fun PrismalGlassStepper(
     val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
 
     val currentValue by rememberUpdatedState(value)
-    val onValueChangeState = rememberUpdatedState(onValueChange)
+    val haptics = rememberPrismalHaptics(hapticFeedback)
+    val onValueChangeState = rememberUpdatedState<(Int) -> Unit> {
+        haptics.tick()
+        onValueChange(it)
+    }
     val canDecrement = value > valueRange.first
     val canIncrement = value < valueRange.last
 

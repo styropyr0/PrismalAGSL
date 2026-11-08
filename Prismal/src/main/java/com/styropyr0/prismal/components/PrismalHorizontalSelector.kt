@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
+import com.styropyr0.prismal.interactive.LocalPrismalHapticFeedback
+import com.styropyr0.prismal.internal.rememberPrismalHaptics
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -110,6 +112,7 @@ fun PrismalHorizontalSelector(
     chromaticAberration: Float = 0.3f,
     dropletShadow: Boolean = false,
     selectOnTap: Boolean = true,
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current,
 ) {
     if (labels.isEmpty()) return
 
@@ -144,6 +147,7 @@ fun PrismalHorizontalSelector(
         chromaticAberration = chromaticAberration,
         dropletShadow = dropletShadow,
         selectOnTap = selectOnTap,
+        hapticFeedback = hapticFeedback,
     ) { index, focus ->
         val fontWeight = if (boldWhenFocused && focus > 0.88f) FontWeight.Bold else FontWeight.Medium
         BasicText(
@@ -182,6 +186,7 @@ fun PrismalHorizontalSelector(
     chromaticAberration: Float = 0.2f,
     dropletShadow: Boolean = false,
     selectOnTap: Boolean = true,
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current,
     itemContent: @Composable (index: Int, focus: Float) -> Unit,
 ) {
     if (itemCount <= 0) return
@@ -226,6 +231,7 @@ fun PrismalHorizontalSelector(
                 chromaticAberration = chromaticAberration,
                 dropletShadow = dropletShadow,
                 selectOnTap = selectOnTap,
+                hapticFeedback = hapticFeedback,
                 itemContent = itemContent,
             )
         }.first().measure(constraints)
@@ -254,6 +260,7 @@ private fun PrismalHorizontalSelectorBody(
     chromaticAberration: Float = 0.2f,
     dropletShadow: Boolean = false,
     selectOnTap: Boolean = true,
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current,
     itemContent: @Composable (index: Int, focus: Float) -> Unit,
 ) {
     val dropletChromaticAberration = chromaticAberration.coerceIn(0f, 1f)
@@ -262,7 +269,11 @@ private fun PrismalHorizontalSelectorBody(
     val scrollState = rememberScrollState()
     val labelsBackdrop = rememberPrismalGlassLayer()
     val dropletBackdrop = rememberPrismalMergedSource(backdrop, labelsBackdrop)
-    val onSelectedState = rememberUpdatedState(onSelected)
+    val haptics = rememberPrismalHaptics(hapticFeedback)
+    val onSelectedState = rememberUpdatedState<(Int) -> Unit> {
+        haptics.tick()
+        onSelected(it)
+    }
 
     labelsBackdrop.readSamplingState()
 

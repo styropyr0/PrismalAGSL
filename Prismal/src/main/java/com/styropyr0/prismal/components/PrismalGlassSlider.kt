@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import com.styropyr0.prismal.interactive.LocalPrismalHapticFeedback
+import com.styropyr0.prismal.internal.rememberPrismalHaptics
+import com.styropyr0.prismal.internal.hapticStep
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -58,6 +61,7 @@ import kotlin.math.abs
  * @param valueRange Allowed value range.
  * @param visibilityThreshold Minimum change delta before [onValueChange] fires.
  * @param backdrop Source sampled through the track and thumb glass.
+ * @param hapticFeedback When true, performs a haptic tick as the value crosses each 5% step.
  */
 @Composable
 fun PrismalGlassSlider(
@@ -68,7 +72,8 @@ fun PrismalGlassSlider(
     backdrop: PrismalBackdrop,
     modifier: Modifier = Modifier,
     adaptiveLuminance: Boolean = false,
-    luminance: () -> Float = { 0.5f }
+    luminance: () -> Float = { 0.5f },
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current
 ) {
     val density = LocalDensity.current
     val isLightTheme = !isSystemInDarkTheme()
@@ -96,6 +101,18 @@ fun PrismalGlassSlider(
         var didDrag by remember { mutableStateOf(false) }
         var isDragging by remember { mutableStateOf(false) }
         var lastReportedValue by remember { mutableFloatStateOf(value()) }
+        val haptics = rememberPrismalHaptics(hapticFeedback)
+        var lastHapticStep by remember {
+            mutableIntStateOf(hapticStep(value(), valueRange.start, valueRange.endInclusive, HapticSteps))
+        }
+        fun emit(next: Float) {
+            val step = hapticStep(next, valueRange.start, valueRange.endInclusive, HapticSteps)
+            if (step != lastHapticStep) {
+                lastHapticStep = step
+                haptics.scrub()
+            }
+            onValueChange(next)
+        }
         val trackWidthState = remember { mutableIntStateOf(0) }
         trackWidthState.intValue = trackWidth
         val dampedDragAnimation = remember(
@@ -118,7 +135,7 @@ fun PrismalGlassSlider(
                     isDragging = false
                     if (didDrag) {
                         lastReportedValue = targetValue
-                        onValueChange(targetValue)
+                        emit(targetValue)
                     }
                 },
                 onDrag = { _, dragAmount ->
@@ -136,7 +153,7 @@ fun PrismalGlassSlider(
                     updateValue(nextValue)
                     if (abs(nextValue - lastReportedValue) >= visibilityThreshold) {
                         lastReportedValue = nextValue
-                        onValueChange(nextValue)
+                        emit(nextValue)
                     }
                 }
             )
@@ -150,6 +167,7 @@ fun PrismalGlassSlider(
             snapshotFlow { value() }
                 .collectLatest { current ->
                     lastReportedValue = current
+                    lastHapticStep = hapticStep(current, valueRange.start, valueRange.endInclusive, HapticSteps)
                     if (!isDragging && dampedDragAnimation.targetValue != current) {
                         dampedDragAnimation.updateValue(current)
                     }
@@ -170,7 +188,7 @@ fun PrismalGlassSlider(
                                 else valueRange.endInclusive - delta)
                                     .coerceIn(valueRange)
                             dampedDragAnimation.animateToValue(targetValue)
-                            onValueChange(targetValue)
+                            emit(targetValue)
                         }
                     }
                     .height(6.dp)
@@ -275,3 +293,5 @@ fun PrismalGlassSlider(
         }
     }
 }
+
+private const val HapticSteps = 20

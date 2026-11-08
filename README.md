@@ -45,6 +45,7 @@ Prismal brings an iOS-style liquid glass look to Android Compose apps. Glass sur
 - [Shapes](#shapes)
 - [Adaptive luminance](#adaptive-luminance)
 - [Interactive primitives](#interactive-primitives)
+- [Haptics](#haptics)
 - [Bottom tab bar](#bottom-tab-bar)
 - [Horizontal selector](#horizontal-selector)
 - [Ruler selector](#ruler-selector)
@@ -80,6 +81,7 @@ Both libraries share the same Prismal glass aesthetic (blur, refraction, interac
 - **Custom glass builder** — `drawPrismalGlass`, `PrismalLiquidGlass`, and composable effect helpers
 - **Adaptive luminance** — optional brightness sampling to tune blur and foreground contrast against the backdrop
 - **Press interactions** — ripple, scale, and spring motion shared across components
+- **Built-in haptics** — ticks on selection, toggle, slider steps and clicks, with API-level fallbacks and a single switch to turn them off
 - **Glass text magnifier** — iOS-style liquid loupe replaces Android's magnifier while dragging a text cursor or selection
 - **Pipeline override** — force a lower tier on a capable device to preview how glass degrades on older Android versions
 
@@ -554,6 +556,33 @@ Attach `PrismalPressRipple.modifier` and `gestureModifier` to a glass surface an
 
 ---
 
+## Haptics
+
+Interactive components perform haptic feedback on their own, so apps don't need to wire it up.
+
+| Component | Feedback |
+|-----------|----------|
+| `PrismalGlassButton` | Confirm on click |
+| `PrismalGlassToggle` | Toggle on / off |
+| `PrismalGlassStepper` | Tick per step |
+| `PrismalGlassSlider` | Tick every 5% of the range |
+| `PrismalRangeSlider` | Tick every 2.5% of the range, per thumb |
+| `PrismalRulerSelector` | Tick as each tick passes the droplet |
+| `PrismalSegmentedControl`, `PrismalHorizontalSelector` | Tick when the selection changes |
+| `PrismalGlassBottomTabs` | Tick on tap and on each tab the droplet crosses |
+
+Newer constants (Android 14 `SEGMENT_TICK` and `TOGGLE_ON` / `TOGGLE_OFF`, Android 11 `CONFIRM`) are only used on versions that have them. Older devices fall back to `CLOCK_TICK` or `VIRTUAL_KEY`, and a device without haptic support simply does nothing.
+
+Every component has a `hapticFeedback: Boolean` parameter. Its default comes from `LocalPrismalHapticFeedback`, so one provider turns haptics off for everything below it:
+
+```kotlin
+CompositionLocalProvider(LocalPrismalHapticFeedback provides false) {
+    AppContent()
+}
+```
+
+---
+
 ## Bottom tab bar
 
 `PrismalGlassBottomTabs` renders an iOS-style bar with a draggable liquid selection pill.
@@ -614,6 +643,7 @@ private fun RowScope.TabItem(index: Int, icon: ImageVector, label: String) {
 | `dropletChromaticAberration` | `0.45f` | Droplet color fringing (`0f` = off, above `1f` exaggerates) |
 | `dropletContentScaleX` / `dropletContentScaleY` | `0.92f` / `0.92f` | Shrink of the bar seen through the droplet while pressed, so the backdrop shows around it; Liquid tier only (`1f` = off) |
 | `pressGlow` | `0.7f` | Brightening gradient on the droplet while pressed, `0f`–`1f` |
+| `hapticFeedback` | `LocalPrismalHapticFeedback.current` | Haptic tick when the highlighted tab changes, by tap or drag |
 | `renderWithLowOverhead` | `true` | `true`: droplet grows via layer scale (smooth, cheap, slightly soft when pressed). `false`: droplet is re-laid out at its animated size (sharp, relayout per frame — use on capable devices) |
 
 ---
@@ -876,7 +906,7 @@ The `:app` module in this repository is a catalog playground (not published to J
 - Play tab: pick any widget with the horizontal selector and drag it around a full-screen stage
   (widgets with their own horizontal gesture drag vertically only), including refracting droplet,
   heavy-lens and pill-droplet variants
-- Haptic feedback on every Play widget, toggled from Profile
+- Haptic feedback from the library components, toggled from Profile through `LocalPrismalHapticFeedback`
 - Profile tab with glass identity card, stat tiles and preferences
 - Theme-aware default wallpapers (ocean in dark mode, lamp in light mode) when no custom image is set
 - Bottom tab bar with customizable droplet tint; uses the sharper `renderWithLowOverhead = false` droplet on capable devices

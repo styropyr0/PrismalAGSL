@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import com.styropyr0.prismal.interactive.LocalPrismalHapticFeedback
+import com.styropyr0.prismal.internal.rememberPrismalHaptics
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -80,6 +82,7 @@ private val RulerSnapSpring = spring<Float>(
  *
  * [onValueChange] is invoked continuously as the focused tick changes while scrolling,
  * and again when the ruler snaps after release.
+ * @param hapticFeedback When true, performs a haptic tick as each tick passes the droplet while scrolling.
  */
 @Composable
 fun PrismalRulerSelector(
@@ -103,6 +106,7 @@ fun PrismalRulerSelector(
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
     chromaticAberration: Float = 0.3f,
     dropletShadow: Boolean = false,
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current,
 ) {
     require(step > 0) { "step must be > 0" }
     require(!valueRange.isEmpty()) { "valueRange must not be empty" }
@@ -126,6 +130,7 @@ fun PrismalRulerSelector(
     val scrollState = rememberScrollState()
     val ticksBackdrop = rememberPrismalGlassLayer()
     val dropletBackdrop = rememberPrismalMergedSource(backdrop, ticksBackdrop)
+    val haptics = rememberPrismalHaptics(hapticFeedback)
     val onValueChangeState = rememberUpdatedState(onValueChange)
     val valueLabelState = rememberUpdatedState(valueLabel)
     val textMeasurer = rememberTextMeasurer()
@@ -209,6 +214,7 @@ fun PrismalRulerSelector(
                 .distinctUntilChanged()
                 .collect { index ->
                     focusedIndex = index
+                    if (isScrolling == 1) haptics.scrub()
                     onValueChangeState.value(valueAt(index))
                 }
         }

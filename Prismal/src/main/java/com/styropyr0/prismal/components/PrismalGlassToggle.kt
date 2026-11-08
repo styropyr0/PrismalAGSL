@@ -4,6 +4,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import com.styropyr0.prismal.interactive.LocalPrismalHapticFeedback
+import com.styropyr0.prismal.internal.rememberPrismalHaptics
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -51,6 +53,7 @@ import kotlinx.coroutines.flow.collectLatest
  * @param selected Current selection state.
  * @param onSelect Called when the user toggles the switch.
  * @param backdrop Source sampled through the track and thumb glass.
+ * @param hapticFeedback When true, performs a haptic tick when the switch flips.
  */
 @Composable
 fun PrismalGlassToggle(
@@ -59,7 +62,8 @@ fun PrismalGlassToggle(
     backdrop: PrismalBackdrop,
     modifier: Modifier = Modifier,
     adaptiveLuminance: Boolean = false,
-    luminance: () -> Float = { 0.5f }
+    luminance: () -> Float = { 0.5f },
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current
 ) {
     val density = LocalDensity.current
     val isLightTheme = !isSystemInDarkTheme()
@@ -73,6 +77,7 @@ fun PrismalGlassToggle(
     val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
     val dragWidth = with(density) { 20.dp.toPx() }
     val animationScope = rememberCoroutineScope()
+    val haptics = rememberPrismalHaptics(hapticFeedback)
     var didDrag by remember { mutableStateOf(false) }
     var fraction by remember { mutableFloatStateOf(if (selected()) 1f else 0f) }
     val dampedDragAnimation = remember(animationScope) {
@@ -87,10 +92,13 @@ fun PrismalGlassToggle(
             onDragStopped = {
                 if (didDrag) {
                     fraction = if (targetValue >= 0.5f) 1f else 0f
-                    onSelect(fraction == 1f)
+                    val on = fraction == 1f
+                    if (on != selected()) haptics.toggle(on)
+                    onSelect(on)
                     didDrag = false
                 } else {
                     fraction = if (selected()) 0f else 1f
+                    haptics.toggle(fraction == 1f)
                     onSelect(fraction == 1f)
                 }
             },

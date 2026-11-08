@@ -31,28 +31,6 @@ class PlaygroundHaptics(private val view: View) {
         HapticFeedbackConstants.CLOCK_TICK
     )
 
-    fun scrubTick() = perform(
-        HapticFeedbackConstants.SEGMENT_FREQUENT_TICK,
-        Build.VERSION_CODES.UPSIDE_DOWN_CAKE,
-        HapticFeedbackConstants.CLOCK_TICK
-    )
-
-    fun toggle(on: Boolean) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            perform(
-                if (on) HapticFeedbackConstants.TOGGLE_ON else HapticFeedbackConstants.TOGGLE_OFF
-            )
-        } else {
-            perform(HapticFeedbackConstants.VIRTUAL_KEY)
-        }
-    }
-
-    fun confirm() = perform(
-        HapticFeedbackConstants.CONFIRM,
-        Build.VERSION_CODES.R,
-        HapticFeedbackConstants.VIRTUAL_KEY
-    )
-
     fun gestureStart() = perform(
         HapticFeedbackConstants.GESTURE_START,
         Build.VERSION_CODES.R,

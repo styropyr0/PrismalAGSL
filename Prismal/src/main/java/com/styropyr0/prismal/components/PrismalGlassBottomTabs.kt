@@ -1,5 +1,7 @@
 package com.styropyr0.prismal.components
 
+import android.os.Build
+import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.spring
@@ -20,6 +22,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -39,6 +42,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -57,6 +61,7 @@ import com.styropyr0.prismal.drawPrismalGlass
 import com.styropyr0.prismal.effects.applyPrismalGlassEffects
 import com.styropyr0.prismal.effects.prismalLens
 import com.styropyr0.prismal.specular.PrismalSpecular
+import com.styropyr0.prismal.interactive.LocalPrismalHapticFeedback
 import com.styropyr0.prismal.interactive.PrismalSpringMotion
 import com.styropyr0.prismal.interactive.PrismalPressRipple
 import com.styropyr0.prismal.depth.PrismalDepthInset
@@ -106,6 +111,8 @@ import kotlin.math.sign
  *   1:1 and sharp, at the cost of a relayout per animation frame (can stutter on weaker
  *   devices).
  * @param pressGlow Intensity of the brightening gradient on the droplet while pressed, in `[0, 1]`.
+ * @param hapticFeedback When true, performs a tick whenever the highlighted tab changes, whether by
+ *   tap or while dragging the droplet across tabs.
  */
 @Composable
 fun PrismalGlassBottomTabs(
@@ -130,6 +137,7 @@ fun PrismalGlassBottomTabs(
     dropletContentScaleY: Float = 0.92f,
     dropletContentScaleX: Float = 0.92f,
     renderWithLowOverhead: Boolean = true,
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current,
     content: @Composable RowScope.() -> Unit
 ) {
     val isLightTheme = !isSystemInDarkTheme()
@@ -203,6 +211,21 @@ fun PrismalGlassBottomTabs(
                     }
                 }
             )
+        }
+        val view = LocalView.current
+        val currentHapticFeedback by rememberUpdatedState(hapticFeedback)
+        LaunchedEffect(view) {
+            snapshotFlow { dragHighlightIndex ?: currentIndex }
+                .drop(1)
+                .collect {
+                    if (currentHapticFeedback) {
+                        view.performHapticFeedback(
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+                                HapticFeedbackConstants.SEGMENT_TICK
+                            else HapticFeedbackConstants.CLOCK_TICK
+                        )
+                    }
+                }
         }
         LaunchedEffect(selectedTabIndex) {
             snapshotFlow { selectedTabIndex() }

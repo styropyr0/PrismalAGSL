@@ -105,7 +105,6 @@ fun CatalogPlaygroundScreen() {
     )
     val luminance = { adaptiveLuminance.luminance }
     val isHighPerformanceDevice = rememberIsHighPerformanceDevice()
-    val haptics = rememberPlaygroundHaptics()
 
     val pickBackgroundImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -133,10 +132,7 @@ fun CatalogPlaygroundScreen() {
                     bottomBar = {
                         PrismalGlassBottomTabs(
                             selectedTabIndex = { selectedTab },
-                            onTabSelected = {
-                                if (it != selectedTab) haptics.selectionTick()
-                                selectedTab = it
-                            },
+                            onTabSelected = { selectedTab = it },
                             backdrop = backdropLayer,
                             tabsCount = 5,
                             specular = glassParams.specularProvider(),

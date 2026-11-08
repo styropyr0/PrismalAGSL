@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import com.styropyr0.prismal.interactive.LocalPrismalHapticFeedback
+import com.styropyr0.prismal.internal.rememberPrismalHaptics
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -71,6 +73,7 @@ private val DefaultButtonArrangement =
  * @param pressLift Extra scale-up applied while pressed.
  * @param contentPadding Padding around [content].
  * @param onDrawSurface Extra surface drawing, applied after tint and [surfaceColor].
+ * @param hapticFeedback When true, performs a haptic confirm on click.
  */
 @Composable
 fun PrismalGlassButton(
@@ -104,11 +107,13 @@ fun PrismalGlassButton(
     horizontalArrangement: Arrangement.Horizontal = DefaultButtonArrangement,
     verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
     onDrawSurface: (DrawScope.() -> Unit)? = null,
+    hapticFeedback: Boolean = LocalPrismalHapticFeedback.current,
     content: @Composable RowScope.() -> Unit
 ) {
     val density = LocalDensity.current
     val pressLiftPx = with(density) { pressLift.toPx() }
     val animationScope = rememberCoroutineScope()
+    val haptics = rememberPrismalHaptics(hapticFeedback)
     val interactivePrismalSpecular = remember(animationScope, isInteractive) {
         if (isInteractive) PrismalPressRipple(animationScope = animationScope) else null
     }
@@ -182,7 +187,10 @@ fun PrismalGlassButton(
                 interactionSource = null,
                 indication = null,
                 role = Role.Button,
-                onClick = onClick
+                onClick = {
+                    haptics.confirm()
+                    onClick()
+                }
             )
             .then(
                 if (interactivePrismalSpecular != null) {
