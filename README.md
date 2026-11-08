@@ -323,7 +323,7 @@ All components take a `backdrop: PrismalBackdrop` and degrade effects automatica
 | `PrismalGlassSlider` | `…components` | Track + refracting thumb |
 | `PrismalRangeSlider` | `…components` | Two-thumb slider selecting a sub-range |
 | `PrismalGlassStepper` | `…components` | − / + capsule with a touch glow and hold-to-repeat |
-| `PrismalSegmentedControl` | `…components` | Trackless segmented picker with a draggable magnifying glass lens |
+| `PrismalSegmentedControl` | `…components` | Segmented picker on a capsule track with a draggable glass thumb |
 | `PrismalGlassMenu` | `…components` | Popup menu that morphs out of a droplet at its anchor |
 | `PrismalGlassProgressBar` | `…components` | Determinate or indeterminate track |
 | `PrismalGradientGlassPanel` | `…components` | Vertical gradient blur / refraction panel |
@@ -798,7 +798,7 @@ The segmented control, stepper and range slider sample `LocalPrismalParentGlassL
 
 ### Segmented control
 
-No track: the labels sit directly on the backdrop, and a clear glass lens rides over the selected one, magnifying (`magnification`) and refracting whatever is under it. Tap a label, or drag the lens across labels; it snaps to the nearest one on release. Below API 33 the lens keeps its magnification, edge highlight and shadow, but not refraction.
+Labels sit on a translucent capsule track, with a resting thumb behind the selected one that is taller than the track. Press or drag the thumb and it turns into a glass lens: the track shrinks under it (`dropletTrackScale`, labels keep their size) so the backdrop shows around it, and the rim refracts. It stops at the first and last segment. Tap a label, or drag the thumb across labels; it snaps to the nearest one on release. Below API 33 the lens keeps its edge highlight and shadow, but not refraction or the shrink. `trackColor` and `thumbColor` override the theme defaults.
 
 ```kotlin
 var period by remember { mutableIntStateOf(0) }

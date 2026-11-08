@@ -28,6 +28,10 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.isSpecified
@@ -47,6 +51,8 @@ import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.fastRoundToInt
 import androidx.compose.ui.util.lerp
 import com.styropyr0.prismal.PrismalBackdrop
+import com.styropyr0.prismal.PrismalGlass
+import com.styropyr0.prismal.PrismalGlassPipeline
 import com.styropyr0.prismal.PrismalGlassEffectProvider
 import com.styropyr0.prismal.depth.PrismalDepthInset
 import com.styropyr0.prismal.depth.PrismalDepthShadow
@@ -67,19 +73,21 @@ import kotlin.math.exp
 import kotlin.math.sqrt
 
 private val SegmentedHorizontalInset = 2.dp
-private val SegmentedDropletVerticalInset = 2.dp
-private const val SegmentedDropletPressedScale = 1.12f
+private val SegmentedDropletVerticalInset = 0.dp
+private val SegmentedTrackVerticalInset = 6.dp
+private const val SegmentedDropletPressedScale = 1.14f
 private const val SegmentedDropletMaxAspect = 2.2f
-private const val SegmentedRefractionBand = 0.45f
+private const val SegmentedRefractionBand = 0.58f
+private const val SegmentedRefractionAmount = 1f
 private val SegmentedDropletShape = PrismalCapsule(PrismalRoundedCornerStyle.Circular)
-private const val SegmentedUnselectedAlpha = 0.55f
+private const val SegmentedUnselectedAlpha = 0.75f
 private const val SegmentedStretchReferenceSpeedDp = 1600f
 private const val SegmentedStretchWidth = 0.3f
 private const val SegmentedStretchHeight = 0.16f
 private const val SegmentedStretchDampingRatio = 0.4f
 private const val SegmentedStretchStiffness = 380f
-private val SegmentedOverdragMax = 14.dp
-private const val SegmentedOverdragRange = 0.5f
+private val SegmentedOverdragMax = 5.dp
+private const val SegmentedOverdragRange = 0f
 private const val SegmentedOverdragStretchWidth = 0.12f
 private const val SegmentedOverdragStretchHeight = 0.06f
 private val SegmentedOverdragReleaseSpring = spring<Float>(dampingRatio = 0.45f, stiffness = 500f)
@@ -88,8 +96,8 @@ private val DefaultSegmentedTextStyle = TextStyle(fontSize = 15.sp, fontWeight =
 /**
  * Segmented picker with a clear liquid-glass droplet riding over the selected label.
  *
- * There is no track: labels sit directly on the backdrop and the droplet magnifies and
- * refracts whatever is under it across its whole dome. Tap a label to move the droplet, or
+ * Labels sit on a translucent capsule track with a resting thumb behind the selected one. The
+ * droplet magnifies and refracts the track, thumb and labels under it across its whole dome. Tap a label to move the droplet, or
  * drag it across labels; it snaps to the nearest one on release. The droplet stretches
  * with its speed and wobbles when it stops, and rubber-bands past the first and last
  * segments while dragged.
@@ -101,11 +109,19 @@ private val DefaultSegmentedTextStyle = TextStyle(fontSize = 15.sp, fontWeight =
  * @param selectedIndex Index of the selected segment.
  * @param onSelected Called with the new index after a tap or a drag ends on another segment.
  * @param backdrop Source sampled through the lens.
+ * @param trackColor Fill of the capsule track. When unspecified, an iOS-style translucent gray.
+ * @param thumbColor Fill of the resting thumb behind the selected label. It fades out while the
+ *   droplet is pressed. When unspecified, white in light theme and a soft white in dark theme.
  * @param textColor Label color. Defaults to black / white by theme; labels away from the
  *   lens are dimmed.
- * @param height Overall control height; the droplet fills it minus a small inset.
+ * @param height Overall control height. The thumb spans all of it while the track is shorter, so
+ *   the thumb stands taller than the track like the tab bar droplet.
  *   The droplet is at most 1.6× as wide as it is tall, so it stays round on wide segments.
- * @param magnification Scale applied to the content seen through the droplet.
+ * @param magnification Scale of the content seen through the droplet at rest.
+ * @param dropletTrackScale Scale of the track and resting thumb seen through the droplet while
+ *   pressed, in `[0.5, 1]`. Below `1f` the track shrinks around the droplet's center so the
+ *   backdrop shows around it like padding, while the labels keep their size. Only applies where
+ *   the refracting lens is available (API 33+); `1f` disables it.
  * @param dropletEffects Replaces the lens's built-in effect stack when non-null.
  * @param specular Edge highlight on the lens; pass `null` to disable.
  * @param hapticFeedback When true, performs a haptic tick when the selected segment changes.
@@ -119,9 +135,12 @@ fun PrismalSegmentedControl(
     modifier: Modifier = Modifier,
     textStyle: TextStyle = DefaultSegmentedTextStyle,
     textColor: Color = Color.Unspecified,
+    trackColor: Color = Color.Unspecified,
+    thumbColor: Color = Color.Unspecified,
     height: Dp = 48.dp,
-    magnification: Float = 1.2f,
-    chromaticAberration: Float = 0.5f,
+    magnification: Float = 1.3f,
+    dropletTrackScale: Float = 0.83f,
+    chromaticAberration: Float = 0.8f,
     luminance: () -> Float = { 0.5f },
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
     specular: (() -> PrismalSpecular?)? = { PrismalSpecular.Default },
@@ -136,14 +155,20 @@ fun PrismalSegmentedControl(
         if (textColor.isSpecified) textColor
         else if (isLightTheme) Color.Black else Color.White
 
+    val resolvedTrackColor =
+        if (trackColor.isSpecified) trackColor
+        else if (isLightTheme) Color(0xFF787880).copy(alpha = 0.16f)
+        else Color(0xFF787880).copy(alpha = 0.36f)
+    val resolvedThumbColor =
+        if (thumbColor.isSpecified) thumbColor
+        else if (isLightTheme) Color.White.copy(alpha = 0.92f)
+        else Color.White.copy(alpha = 0.2f)
+
     val parentGlassLayer = LocalPrismalParentGlassLayer.current
     val underlayBackdrop = parentGlassLayer ?: backdrop
+    val trackLayer = rememberPrismalGlassLayer()
     val labelsLayer = rememberPrismalGlassLayer()
-    val lensBackdrop = rememberPrismalWrappedSource(
-        rememberPrismalMergedSource(underlayBackdrop, labelsLayer)
-    ) { drawPrismalGlass ->
-        scale(magnification) { drawPrismalGlass() }
-    }
+    trackLayer.readSamplingState()
     labelsLayer.readSamplingState()
     parentGlassLayer?.readSamplingState()
 
@@ -202,6 +227,18 @@ fun PrismalSegmentedControl(
             )
         }
 
+        val lensAvailable = PrismalGlass.pipeline == PrismalGlassPipeline.Liquid
+        val shrunkTrack = rememberPrismalWrappedSource(trackLayer) { drawTrack ->
+            val progress = if (lensAvailable) lensMotion.pressProgress else 0f
+            scale(lerp(magnification, dropletTrackScale.fastCoerceIn(0.5f, 1f), progress)) {
+                drawTrack()
+            }
+        }
+        val scaledLensBackdrop = rememberPrismalMergedSource(shrunkTrack, labelsLayer)
+        val mergedLensBackdrop = rememberPrismalMergedSource(underlayBackdrop, shrunkTrack, labelsLayer)
+        val lensBackdrop =
+            if (PrismalGlass.pipeline == PrismalGlassPipeline.Legacy) scaledLensBackdrop else mergedLensBackdrop
+
         LaunchedEffect(lensMotion, selectedIndex) {
             val target = selectedIndex.coerceIn(0, segmentCount - 1)
             if (lensMotion.targetValue.fastRoundToInt() != target) {
@@ -244,6 +281,43 @@ fun PrismalSegmentedControl(
             }
         }
 
+        val dropletHeight = height - SegmentedDropletVerticalInset * 2
+        val dropletHeightPx = with(density) { dropletHeight.toPx() }
+        val dropletWidthPx = segmentWidthPx
+            .coerceAtMost(dropletHeightPx * SegmentedDropletMaxAspect)
+            .coerceAtLeast(dropletHeightPx.coerceAtMost(segmentWidthPx))
+        val dropletCenteringPx = (segmentWidthPx - dropletWidthPx) / 2f
+
+        Box(
+            Modifier
+                .prismalGlassLayer(trackLayer)
+                .fillMaxSize()
+                .drawBehind {
+                    val trackInset = SegmentedTrackVerticalInset.toPx()
+                    val trackHeight = size.height - trackInset * 2f
+                    drawRoundRect(
+                        color = resolvedTrackColor,
+                        topLeft = Offset(0f, trackInset),
+                        size = Size(size.width, trackHeight),
+                        cornerRadius = CornerRadius(trackHeight / 2f)
+                    )
+                    val alpha = (1f - lensMotion.pressProgress).coerceIn(0f, 1f)
+                    if (alpha <= 0f) return@drawBehind
+                    val travel = lensMotion.value * segmentWidthPx + dropletCenteringPx + overdrag.value
+                    val left =
+                        if (isLtr) insetPx + travel
+                        else size.width - insetPx - travel - dropletWidthPx
+                    val thumbHeight = size.height - SegmentedDropletVerticalInset.toPx() * 2f
+                    drawRoundRect(
+                        color = resolvedThumbColor,
+                        topLeft = Offset(left, SegmentedDropletVerticalInset.toPx()),
+                        size = Size(dropletWidthPx, thumbHeight),
+                        cornerRadius = CornerRadius(thumbHeight / 2f),
+                        alpha = alpha
+                    )
+                }
+        )
+
         Row(
             Modifier
                 .prismalGlassLayer(labelsLayer)
@@ -284,13 +358,6 @@ fun PrismalSegmentedControl(
             }
         }
 
-        val dropletHeight = height - SegmentedDropletVerticalInset * 2
-        val dropletHeightPx = with(density) { dropletHeight.toPx() }
-        val dropletWidthPx = segmentWidthPx
-            .coerceAtMost(dropletHeightPx * SegmentedDropletMaxAspect)
-            .coerceAtLeast(dropletHeightPx.coerceAtMost(segmentWidthPx))
-        val dropletCenteringPx = (segmentWidthPx - dropletWidthPx) / 2f
-
         Box(
             Modifier
                 .padding(horizontal = SegmentedHorizontalInset)
@@ -309,10 +376,10 @@ fun PrismalSegmentedControl(
                             dropletEffects(currentLuminance)
                         } else {
                             val radius = size.minDimension / 2f
-                            val progress = lensMotion.pressProgress
+                            val glass = lensMotion.pressProgress.fastCoerceIn(0f, 1f)
                             prismalLens(
-                                refractionHeight = radius * SegmentedRefractionBand,
-                                refractionAmount = radius * lerp(0.45f, 0.65f, progress),
+                                refractionHeight = radius * SegmentedRefractionBand * glass,
+                                refractionAmount = radius * SegmentedRefractionAmount * glass,
                                 depthEffect = true,
                                 chromaticAberration = chromaticAberration
                             )
@@ -320,18 +387,13 @@ fun PrismalSegmentedControl(
                     },
                     specular = specular,
                     depthShadow = {
-                        PrismalDepthShadow(
-                            radius = 12.dp,
-                            offset = DpOffset(0.dp, 4.dp),
-                            color = Color.Black.copy(alpha = 0.14f),
-                            alpha = lerp(0.7f, 1f, lensMotion.pressProgress)
-                        )
+                        PrismalDepthShadow(alpha = lerp(0.6f, 1f, lensMotion.pressProgress))
                     },
                     depthInset = {
+                        val progress = lensMotion.pressProgress
                         PrismalDepthInset(
-                            radius = 6.dp,
-                            offset = DpOffset(0.dp, 3.dp),
-                            color = Color.Black.copy(alpha = 0.1f)
+                            radius = 8.dp * lerp(0.75f, 1f, progress),
+                            alpha = lerp(0.6f, 1f, progress)
                         )
                     },
                     layerBlock = {
