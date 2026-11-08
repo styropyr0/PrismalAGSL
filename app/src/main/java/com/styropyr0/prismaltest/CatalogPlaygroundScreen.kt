@@ -354,7 +354,7 @@ private fun CatalogTabContent(
                     .padding(horizontal = IosLayout.screenHorizontal, vertical = 10.dp)
             ) {
                 PrismalSegmentedControl(
-                    labels = listOf("Day", "Week", "Month", "Year"),
+                    labels = listOf("Quarks", "Proton", "Atom", "Molecule"),
                     selectedIndex = segmentIndex,
                     onSelected = { segmentIndex = it },
                     backdrop = backdrop,
