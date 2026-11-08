@@ -78,7 +78,7 @@ private val SegmentedTrackVerticalInset = 6.dp
 private const val SegmentedDropletPressedScale = 1.14f
 private const val SegmentedDropletMaxAspect = 2.2f
 private const val SegmentedRefractionBand = 0.58f
-private const val SegmentedRefractionAmount = 1f
+private const val SegmentedRefractionAmount = 0.8f
 private val SegmentedDropletShape = PrismalCapsule(PrismalRoundedCornerStyle.Circular)
 private const val SegmentedUnselectedAlpha = 0.75f
 private const val SegmentedStretchReferenceSpeedDp = 1600f
@@ -139,7 +139,7 @@ fun PrismalSegmentedControl(
     thumbColor: Color = Color.Unspecified,
     height: Dp = 48.dp,
     magnification: Float = 1.3f,
-    dropletTrackScale: Float = 0.83f,
+    dropletTrackScale: Float = 0.9f,
     chromaticAberration: Float = 0.8f,
     luminance: () -> Float = { 0.5f },
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
